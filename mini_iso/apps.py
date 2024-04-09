@@ -1,0 +1,59 @@
+from __future__ import annotations
+import logging
+import sys
+import panel as pn
+from mini_iso.dashboard import LmpPricer, LmpDashboard
+from mini_iso.dataframes import Input
+from mini_iso.datasets.mini_new_england import load_system
+from mini_iso.auction import Auction, Bidder
+
+# panel configuration
+pn.extension(
+    "tabulator",
+    "vega",
+    css_files=[
+        # Required to render button icons
+        # https://panel.holoviz.org/reference/widgets/Tabulator.html#buttons
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    ],
+    design="material",
+    notifications=True,
+    sizing_mode="stretch_width",
+)
+
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
+
+
+@pn.cache
+def load_auction(constrained: bool) -> Auction:
+    """This function's body is evaluated exactly once."""
+    inputs: Input = load_system(constrained=constrained)
+    pricer: LmpPricer = LmpPricer.from_inputs(inputs)
+    return Auction(pricer)
+
+
+auction: Auction = load_auction(constrained=True)
+
+
+def bidding_session(auction=auction):
+    return Bidder(auction)
+
+
+if __name__ != "__main__":
+    pn.serve(
+        admin=True,
+        panels={
+            "bidding": bidding_session,
+            "auction": auction,
+            # "pricer": auction.pricer,
+            "dashboard": LmpDashboard(pricer=auction.pricer),
+        },
+        port=5006,
+        title="Mini-ISO Applications",
+    )
+
+else:
+    dashboard = LmpDashboard(pricer=auction.pricer)
+    print(dashboard)
+    pn.panel(dashboard).servable()

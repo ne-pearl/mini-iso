@@ -1,0 +1,14 @@
+name,zone,capacity,cost
+Generator_1,NH,4105.2,11
+Generator_15,NH,158.07,21
+Generator_18,SEMASS,1843.71,11
+Generator_2,CT,4075.5,14
+Generator_36,RI,1701.15,24
+Generator_4,SEMASS,2259.51,25
+Generator_45,ME,808.17,13
+Generator_5,VT,2046.66,13
+Generator_52,RI,491.7,22
+Generator_67,WCMASS,495,22
+Generator_68,WCMASS,577.5,22
+Generator_76,ME,412.5,23
+Generator_8,CT,1228.26,15
