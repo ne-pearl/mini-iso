@@ -1,13 +1,15 @@
 from __future__ import annotations
 import logging
 import sys
+import typing
 import panel as pn
 from mini_iso.dashboard import LmpPricer, LmpDashboard
 from mini_iso.dataframes import Input
 from mini_iso.datasets.mini_new_england import load_system
 from mini_iso.auction import Auction, Bidder
 
-PORT: Final[int] = 5000
+ADDRESS: typing.Final[str] = "*"
+PORT: typing.Final[int] = 5000
 
 # panel configuration
 pn.extension(
@@ -38,7 +40,7 @@ def load_auction(constrained: bool) -> Auction:
 auction: Auction = load_auction(constrained=True)
 
 
-def bidding_session(auction=auction):
+def new_bidding_session(auction=auction):
     return Bidder(auction)
 
 
@@ -46,13 +48,13 @@ if __name__ != "__main__":
     pn.serve(
         admin=True,
         panels={
-            "bidding": bidding_session,
+            "bidding": new_bidding_session,
             "auction": auction,
             "dashboard": LmpDashboard(pricer=auction.pricer),
         },
         port=PORT,
         title="Mini-ISO: Application Menu",
-        websocket_origin=f"*:{PORT}",
+        websocket_origin=f"{ADDRESS}:{PORT}",
     )
 
 else:
