@@ -49,8 +49,9 @@ if __name__ != "__main__":
             # "pricer": auction.pricer,
             "dashboard": LmpDashboard(pricer=auction.pricer),
         },
-        port=5006,
+        port=5000,
         title="Mini-ISO Applications",
+        websocket_origin="*",
     )
 
 else:
