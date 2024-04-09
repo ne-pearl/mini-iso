@@ -7,6 +7,8 @@ from mini_iso.dataframes import Input
 from mini_iso.datasets.mini_new_england import load_system
 from mini_iso.auction import Auction, Bidder
 
+PORT: Final[int] = 5000
+
 # panel configuration
 pn.extension(
     "tabulator",
@@ -46,12 +48,11 @@ if __name__ != "__main__":
         panels={
             "bidding": bidding_session,
             "auction": auction,
-            # "pricer": auction.pricer,
             "dashboard": LmpDashboard(pricer=auction.pricer),
         },
-        port=5000,
-        title="Mini-ISO Applications",
-        websocket_origin="*",
+        port=PORT,
+        title="Mini-ISO: Application Menu",
+        websocket_origin=f"*:{PORT}",
     )
 
 else:
