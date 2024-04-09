@@ -51,6 +51,7 @@ if __name__ != "__main__":
             "bidding": new_bidding_session,
             "auction": auction,
             "dashboard": LmpDashboard(pricer=auction.pricer),
+            "pricer": auction.pricer,
         },
         port=PORT,
         title="Mini-ISO: Application Menu",

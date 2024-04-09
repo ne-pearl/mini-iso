@@ -1,9 +1,40 @@
 from __future__ import annotations
-from typing import TypeAlias
+from dataclasses import dataclass
+from typing import Literal, TypeAlias
+from bokeh.models.widgets.tables import (
+    CellFormatter,
+    NumberFormatter,
+    BooleanFormatter,
+)
 import panel as pn
 import param as pm
 from panel.widgets import Tabulator
 
+
+@dataclass(frozen=True, slots=True)
+class Format:
+    align: Literal["center", "left", "right"]
+    formatter: dict[str, bool | int | str] | CellFormatter
+
+    @classmethod
+    def from_unit(cls, unit: str, precision: int = 0) -> Format:
+        return cls(
+            align="right",
+            formatter={
+                "precision": precision,
+                "symbol": " " + unit.strip(),
+                "symbolAfter": True,
+                "type": "money",  # hijack money for physical units
+            },
+        )
+
+
+admittance_siemens = Format.from_unit("S")
+boolean_check = Format(align="center", formatter=BooleanFormatter())
+fraction_percentage = Format(align="right", formatter=NumberFormatter(format="0%"))
+money_dollars = Format(align="right", formatter=NumberFormatter(format="$0"))
+power_megawatts = Format.from_unit("MW")
+real_unspecified = Format(align="right", formatter=NumberFormatter(format="0.0"))
 
 def filter_columns(tabulator: Tabulator, columns: list[str]) -> Tabulator:
     hidden_columns: set[str] = set(tabulator.value.columns).difference(columns)

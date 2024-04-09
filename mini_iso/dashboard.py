@@ -28,6 +28,15 @@ from mini_iso.clearance import (
     OffersOutput,
     ZonesOutput,
 )
+from mini_iso.panel_helpers import (
+    tabulator_item,
+    admittance_siemens,
+    boolean_check,
+    fraction_percentage,
+    money_dollars,
+    power_megawatts,
+    real_unspecified,
+)
 
 TAB_GRAPHICAL: Final[str] = "Graphical"
 TAB_TABULAR: Final[str] = "Tabular"
@@ -250,7 +259,17 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.generators,
+                    formatters={
+                        GeneratorsOutput.capacity: power_megawatts.formatter,
+                        GeneratorsOutput.dispatched: power_megawatts.formatter,
+                        GeneratorsOutput.utilization: fraction_percentage.formatter,
+                    },
                     show_index=False,
+                    text_align={
+                        GeneratorsOutput.capacity: power_megawatts.align,
+                        GeneratorsOutput.dispatched: power_megawatts.align,
+                        GeneratorsOutput.utilization: fraction_percentage.align,
+                    },
                 ),
             ),
         )
@@ -426,7 +445,37 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.lines,
+                    formatters={
+                        LinesOutput.susceptance: admittance_siemens.formatter,
+                        LinesOutput.quantity: power_megawatts.formatter,
+                        LinesOutput.abs_flow: power_megawatts.formatter,
+                        LinesOutput.capacity: power_megawatts.formatter,
+                        LinesOutput.slack: power_megawatts.formatter,
+                        LinesOutput.utilization: fraction_percentage.formatter,
+                        LinesOutput.is_critical: boolean_check.formatter,
+                        LinesOutput.x_from: real_unspecified.formatter,
+                        LinesOutput.y_from: real_unspecified.formatter,
+                        LinesOutput.x_to: real_unspecified.formatter,
+                        LinesOutput.y_to: real_unspecified.formatter,
+                        LinesOutput.x_mid: real_unspecified.formatter,
+                        LinesOutput.y_mid: real_unspecified.formatter,
+                    },
                     show_index=False,
+                    text_align={
+                        LinesOutput.susceptance: admittance_siemens.align,
+                        LinesOutput.quantity: power_megawatts.align,
+                        LinesOutput.abs_flow: power_megawatts.align,
+                        LinesOutput.capacity: power_megawatts.align,
+                        LinesOutput.slack: power_megawatts.align,
+                        LinesOutput.utilization: fraction_percentage.align,
+                        LinesOutput.is_critical: boolean_check.align,
+                        LinesOutput.x_from: real_unspecified.align,
+                        LinesOutput.y_from: real_unspecified.align,
+                        LinesOutput.x_to: real_unspecified.align,
+                        LinesOutput.y_to: real_unspecified.align,
+                        LinesOutput.x_mid: real_unspecified.align,
+                        LinesOutput.y_mid: real_unspecified.align,
+                    },
                 ),
             ),
         )
@@ -480,7 +529,21 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.offers,
+                    formatters={
+                        OffersOutput.price: money_dollars.formatter,
+                        OffersOutput.quantity: power_megawatts.formatter,
+                        OffersOutput.quantity_dispatched: power_megawatts.formatter,
+                        OffersOutput.utilization: fraction_percentage.formatter,
+                        OffersOutput.is_marginal: boolean_check.formatter,
+                    },
                     show_index=False,
+                    text_align={
+                        OffersOutput.price: money_dollars.align,
+                        OffersOutput.quantity: power_megawatts.align,
+                        OffersOutput.quantity_dispatched: power_megawatts.align,
+                        OffersOutput.utilization: fraction_percentage.align,
+                        OffersOutput.is_marginal: boolean_check.align,
+                    },
                 ),
             ),
         )
@@ -515,7 +578,25 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.zones,
+                    formatters={
+                        ZonesOutput.price: money_dollars.formatter,
+                        ZonesOutput.load: power_megawatts.formatter,
+                        ZonesOutput.dispatched: power_megawatts.formatter,
+                        ZonesOutput.capacity: power_megawatts.formatter,
+                        ZonesOutput.utilization: fraction_percentage.formatter,
+                        ZonesOutput.x: real_unspecified.formatter,
+                        ZonesOutput.y: real_unspecified.formatter,
+                    },
                     show_index=False,
+                    text_align={
+                        ZonesOutput.price: money_dollars.align,
+                        ZonesOutput.load: power_megawatts.align,
+                        ZonesOutput.dispatched: power_megawatts.align,
+                        ZonesOutput.capacity: power_megawatts.align,
+                        ZonesOutput.utilization: fraction_percentage.align,
+                        ZonesOutput.x: real_unspecified.align,
+                        ZonesOutput.y: real_unspecified.align,
+                    },
                 ),
             ),
         )
@@ -526,10 +607,6 @@ class LmpDashboard(pm.Parameterized):
             main=[
                 pn.Row(
                     pn.Card(self.pricer.inputs_panel(), title="Inputs"),
-                    # pn.Card(self.lines_panel(), title="Lines"),
-                    # pn.Card(self.generators_panel(), title="Generators"),
-                    # pn.Card(self.offers_panel(), title="Offers"),
-                    # pn.Card(self.zones_panel(), title="Zones"),
                     pn.Tabs(
                         ("Lines", self.lines_panel()),
                         ("Generators", self.generators_panel()),

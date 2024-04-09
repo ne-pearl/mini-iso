@@ -16,7 +16,12 @@ from mini_iso.dataframes import (
     Zones,
     ZonesPrice,
 )
-from mini_iso.panel_helpers import tabulator_item
+from mini_iso.panel_helpers import (
+    tabulator_item,
+    admittance_siemens,
+    money_dollars,
+    power_megawatts,
+)
 
 OFFERS_INDEX_LABELS: Final[list[str]] = [Offers.generator, Offers.tranche]
 
@@ -169,6 +174,10 @@ class LmpPricer(pn.viewable.Viewer):
             tabulator_item(
                 self.param.offers,
                 disabled=False,
+                formatters={
+                    Offers.quantity: power_megawatts.formatter,
+                    Offers.price: money_dollars.formatter,
+                },
                 height=400,
                 show_columns=[
                     Offers.generator,
@@ -177,6 +186,10 @@ class LmpPricer(pn.viewable.Viewer):
                     Offers.quantity,
                 ],
                 show_index=False,  # NB: after call to reset_index
+                text_align={
+                    Offers.quantity: power_megawatts.align,
+                    Offers.price: money_dollars.align,
+                },
             ),
             tabulator_item(
                 self.param.generators,
@@ -184,15 +197,21 @@ class LmpPricer(pn.viewable.Viewer):
                 # Rather, capacity is conveyed via the offers.
                 # FIXME: Does it make sense to make zone editable?
                 disabled=True,
+                formatters={Generators.capacity: power_megawatts.formatter},
                 show_columns=[
                     Generators.name,
                     Generators.zone,
                     Generators.capacity,
                 ],
+                text_align={Generators.capacity: power_megawatts.align},
             ),
             tabulator_item(
                 self.param.lines,
                 disabled=False,
+                formatters={
+                    Lines.capacity: power_megawatts.formatter,
+                    Lines.susceptance: admittance_siemens.formatter,
+                },
                 show_columns=[
                     Lines.name,
                     Lines.zone_from,
@@ -200,14 +219,20 @@ class LmpPricer(pn.viewable.Viewer):
                     Lines.capacity,
                     Lines.susceptance,
                 ],
+                text_align={
+                    Lines.capacity: power_megawatts.align,
+                    Lines.susceptance: admittance_siemens.align,
+                },
             ),
             tabulator_item(
                 self.param.zones,
                 disabled=False,
+                formatters={Zones.load: power_megawatts.formatter},
                 show_columns=[
                     Zones.name,
                     Zones.load,
                 ],
+                text_align={Zones.load: power_megawatts.align},
             ),
         )
 
@@ -216,14 +241,24 @@ class LmpPricer(pn.viewable.Viewer):
             tabulator_item(
                 self.param.lines_flow,
                 name=self.param.lines.label,
+                formatters={LinesFlow.quantity: power_megawatts.formatter},
+                text_align={LinesFlow.quantity: power_megawatts.align},
             ),
             tabulator_item(
                 self.param.offers_dispatched,
                 name=self.param.offers.label,
+                formatters={
+                    OffersDispatched.quantity_dispatched: power_megawatts.formatter
+                },
+                text_align={
+                    OffersDispatched.quantity_dispatched: power_megawatts.align
+                },
             ),
             tabulator_item(
                 self.param.zones_price,
                 name=self.param.zones.label,
+                formatters={ZonesPrice.price: money_dollars.formatter},
+                text_align={ZonesPrice.price: money_dollars.align},
             ),
         )
 
