@@ -2,7 +2,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import pathlib
-from typing import Any, Callable, Optional, TypeAlias, TypeVar
+from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
@@ -127,6 +127,9 @@ class Offers(DataFrameModel):
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> pd.DataFrame:
         return _validate_and_reindex(cls, df, cls.generator, cls.tranche)
+
+
+OFFERS_INDEX_LABELS: Final[list[str]] = [Offers.generator, Offers.tranche]
 
 
 class Zones(DataFrameModel):

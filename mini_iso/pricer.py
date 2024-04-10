@@ -7,6 +7,7 @@ import panel as pn
 import param as pm
 from mini_iso.clearance import Solution, Status, solve
 from mini_iso.dataframes import (
+    OFFERS_INDEX_LABELS,
     Generators,
     Input,
     Lines,
@@ -22,8 +23,6 @@ from mini_iso.panel_helpers import (
     money_dollars,
     power_megawatts,
 )
-
-OFFERS_INDEX_LABELS: Final[list[str]] = [Offers.generator, Offers.tranche]
 
 
 def _validate_inputs(

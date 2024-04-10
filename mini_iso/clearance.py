@@ -11,6 +11,7 @@ from pandera import DataFrameModel, Field
 from pandera.api.pandas import model_config
 from pandera.typing import DataFrame, Index, Series
 from mini_iso.dataframes import (
+    OFFERS_INDEX_LABELS,
     Input,
     Generators,
     Lines,
@@ -257,7 +258,6 @@ def solve(
     line_power.index.name = Lines.name
 
     # Dispatched output for each generator over its tranches
-    offer_index_levels: list[str] = [Offers.generator, Offers.tranche]
     dispatched = pd.DataFrame.from_records(
         [
             {
@@ -267,7 +267,7 @@ def solve(
             }
             for (g, t), pgt in p.items()
         ],
-    ).set_index(offer_index_levels)
+    ).set_index(OFFERS_INDEX_LABELS)
 
     # Sanity check
     total_load: PowerMW = input_.zones[ZonesOutput.load].sum()

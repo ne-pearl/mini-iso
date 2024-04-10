@@ -6,8 +6,9 @@ import pandas as pd
 import panel as pn
 import param as pm
 from mini_iso.offer_stacks import OfferStack
-from mini_iso.pricer import OFFERS_INDEX_LABELS, LmpPricer
+from mini_iso.pricer import LmpPricer
 from mini_iso.dataframes import (
+    OFFERS_INDEX_LABELS,
     Fraction,
     GeneratorId,
     Generators,
@@ -161,7 +162,7 @@ def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame
         },
         index=pd.MultiIndex.from_arrays(
             [offers[Offers.generator], offers[Offers.tranche]],
-            names=[Offers.generator, Offers.tranche],
+            names=OFFERS_INDEX_LABELS,
         ),
     ).reset_index()
 
@@ -312,12 +313,12 @@ class LmpDashboard(pm.Parameterized):
                     color=alt.Color(color_field_lines, legend=None),
                     size=alt.value(5),
                     tooltip=[
-                        LinesOutput.name,
-                        LinesOutput.slack,
-                        LinesOutput.utilization,
-                        LinesOutput.is_critical,
-                        LinesOutput.abs_flow,
-                        LinesOutput.capacity,
+                        alt.Tooltip(LinesOutput.name),
+                        alt.Tooltip(LinesOutput.slack, format=".2f"),
+                        alt.Tooltip(LinesOutput.utilization, format=".0%"),
+                        alt.Tooltip(LinesOutput.is_critical),
+                        alt.Tooltip(LinesOutput.abs_flow, format=".0f"),
+                        alt.Tooltip(LinesOutput.capacity, format=".0f"),
                     ],
                 )
                 .project(type="identity", reflectY=True)
@@ -342,7 +343,7 @@ class LmpDashboard(pm.Parameterized):
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
-                text=alt.Text(color_field_lines),
+                text=alt.Text(color_field_lines, format=".0f"),
             )
 
             nodes_plot = (
@@ -356,9 +357,9 @@ class LmpDashboard(pm.Parameterized):
                     size=alt.value(np.pi * circle_radius**2),  # actually area?
                     tooltip=[
                         ZonesOutput.name,
-                        ZonesOutput.price,
-                        ZonesOutput.capacity,
-                        ZonesOutput.dispatched,
+                        alt.Tooltip(ZonesOutput.price, format="$.2f"),
+                        alt.Tooltip(ZonesOutput.capacity, format=".0f"),
+                        alt.Tooltip(ZonesOutput.dispatched, format=".0f"),
                     ],
                 )
             )
