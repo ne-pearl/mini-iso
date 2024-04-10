@@ -29,7 +29,6 @@ from mini_iso.clearance import (
     ZonesOutput,
 )
 from mini_iso.panel_helpers import (
-    tabulator_item,
     admittance_siemens,
     boolean_check,
     fraction_percentage,
@@ -518,16 +517,9 @@ class LmpDashboard(pm.Parameterized):
         return pn.Tabs(
             (
                 TAB_GRAPHICAL,
-                pn.Row(
-                    pn.Card(
-                        offer_stack_chart,
-                        title="All Zones",
-                    ),
-                    pn.Card(
-                        offer_stacks_chart,
-                        title="Separate Zones",
-                        collapsed=False,
-                    ),
+                pn.Tabs(
+                    ("Aggregate", pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height")),
+                    ("By Zone", pn.pane.Vega(offer_stacks_chart, sizing_mode="stretch_width")),
                 ),
             ),
             (

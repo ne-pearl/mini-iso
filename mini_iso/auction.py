@@ -4,8 +4,16 @@ from numpy.typing import NDArray
 from pandera.typing import Series
 import panel as pn
 import param as pm
-from mini_iso.dataframes import Offers
-from mini_iso.panel_helpers import tabulator_item
+from mini_iso.dataframes import Offers, LinesFlow, OffersDispatched, ZonesPrice
+from mini_iso.panel_helpers import (
+    admittance_siemens,
+    boolean_check,
+    fraction_percentage,
+    money_dollars,
+    power_megawatts,
+    real_unspecified,
+    tabulator_item,
+)
 from mini_iso.pricer import LmpPricer
 
 
@@ -70,6 +78,14 @@ class Auction(pn.viewable.Viewer):
                             pn.widgets.Tabulator.from_param(
                                 self.param.offers_pending,
                                 show_index=False,
+                                formatters={
+                                    Offers.price: money_dollars.formatter,
+                                    Offers.quantity: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    Offers.price: money_dollars.align,
+                                    Offers.quantity: power_megawatts.align,
+                                },
                             ),
                         ),
                         title="Offers",
@@ -79,13 +95,43 @@ class Auction(pn.viewable.Viewer):
                             tabulator_item(
                                 self.param.offers_committed,
                                 show_index=False,
+                                formatters={
+                                    Offers.price: money_dollars.formatter,
+                                    Offers.quantity: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    Offers.price: money_dollars.align,
+                                    Offers.quantity: power_megawatts.align,
+                                },
                             ),
-                            tabulator_item(self.param.lines_flow),
+                            tabulator_item(
+                                self.param.lines_flow,
+                                formatters={
+                                    LinesFlow.quantity: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    LinesFlow.quantity: power_megawatts.align,
+                                },
+                            ),
                             tabulator_item(
                                 self.param.offers_dispatched,
                                 show_index=False,
+                                formatters={
+                                    OffersDispatched.quantity_dispatched: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    OffersDispatched.quantity_dispatched: power_megawatts.align,
+                                },
                             ),
-                            tabulator_item(self.param.zones_price),
+                            tabulator_item(
+                                self.param.zones_price,
+                                formatters={
+                                    ZonesPrice.price: money_dollars.formatter,
+                                },
+                                text_align={
+                                    ZonesPrice.price: money_dollars.align,
+                                },
+                            ),
                         ),
                         title="Results",
                     ),
@@ -133,10 +179,6 @@ class Bidder(pn.viewable.Viewer):
         self.offers_drafted = self.auction.offers_pending[rows]
         self.offers_pending = self.auction.offers_pending[rows]
         self.offers_committed = self.auction.offers_committed[rows]
-        # print(">" * 80)
-        # print(rows)
-        # print("dispatched:\n", self.auction.offers_dispatched)
-        # print("<" * 80)
         self.offers_dispatched = self.auction.offers_dispatched[rows]
 
     @pn.depends("submit", watch=True)
@@ -171,7 +213,16 @@ class Bidder(pn.viewable.Viewer):
                             pn.Card(
                                 pn.Column(
                                     pn.widgets.Tabulator.from_param(
-                                        self.param.offers_drafted
+                                        self.param.offers_drafted,
+                                        formatters={
+                                            Offers.price: money_dollars.formatter,
+                                            Offers.quantity: power_megawatts.formatter,
+                                        },
+                                        show_index=False,
+                                        text_align={
+                                            Offers.price: money_dollars.align,
+                                            Offers.quantity: power_megawatts.align,
+                                        },
                                     ),
                                     pn.Row(
                                         pn.widgets.Button.from_param(self.param.submit),
@@ -184,7 +235,15 @@ class Bidder(pn.viewable.Viewer):
                                 pn.widgets.Tabulator.from_param(
                                     self.param.offers_pending,
                                     disabled=True,
+                                    formatters={
+                                        Offers.price: money_dollars.formatter,
+                                        Offers.quantity: power_megawatts.formatter,
+                                    },
                                     show_index=False,
+                                    text_align={
+                                        Offers.price: money_dollars.align,
+                                        Offers.quantity: power_megawatts.align,
+                                    },
                                 ),
                                 title="Submitted Offers",
                             ),
@@ -194,20 +253,41 @@ class Bidder(pn.viewable.Viewer):
                                 pn.Card(
                                     pn.widgets.Tabulator.from_param(
                                         self.param.offers_committed,
+                                        formatters={
+                                            Offers.price: money_dollars.formatter,
+                                            Offers.quantity: power_megawatts.formatter,
+                                        },
                                         show_index=False,
+                                        text_align={
+                                            Offers.price: money_dollars.align,
+                                            Offers.quantity: power_megawatts.align,
+                                        },
                                     ),
                                     title="Committed Offers",
                                 ),
                                 pn.Card(
                                     pn.widgets.Tabulator.from_param(
                                         self.param.offers_dispatched,
+                                        formatters={
+                                            OffersDispatched.quantity_dispatched: power_megawatts.formatter,
+                                        },
                                         show_index=False,
+                                        text_align={
+                                            OffersDispatched.quantity_dispatched: power_megawatts.align,
+                                        },
                                     ),
                                     title="Dispatched Offers",
                                 ),
                                 pn.Card(
                                     pn.widgets.Tabulator.from_param(
-                                        self.param.zones_price
+                                        self.param.zones_price,
+                                        formatters={
+                                            ZonesPrice.price: money_dollars.formatter,
+                                        },
+                                        show_index=False,
+                                        text_align={
+                                            ZonesPrice.price: money_dollars.align,
+                                        },
                                     ),
                                     title="Zone Prices",
                                 ),
