@@ -88,12 +88,12 @@ class OfferStack:
 
     def plot(
         self,
+        color_field: str,
         aggregate_load_color: str = "black",
         marginal_price_color: str = "red",
         price_axis_format: str = "$.0f",
         price_axis_title="marginal price",
         quantity_axis_title: str = "quantity [MW]",
-        color_field: str = OffersOutput.zone,
     ) -> alt.LayerChart:
         """Produces plot of an offer stack."""
 
