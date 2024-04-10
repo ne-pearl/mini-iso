@@ -7,7 +7,14 @@ import numpy as np
 from numpy.typing import NDArray
 from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Index, Series
-from mini_iso.dataframes import Generators, Offers, PowerMW, MoneyUSD, ZoneId, Zones
+from mini_iso.dataframes import (
+    Generators,
+    Offers,
+    PowerMW,
+    MoneyUSD,
+    Zones,
+)
+from mini_iso.clearance import OffersOutput
 
 Self: TypeAlias = None
 LOAD_KEY = "Load"
@@ -40,27 +47,28 @@ class OfferStack:
     @classmethod
     def from_offers(
         cls,
-        offers: DataFrame[Offers],
+        offers: DataFrame[OffersOutput],
         load: PowerMW,
     ) -> OfferStack:
         """Initialize from offers."""
 
         offers_by_price: pd.DataFrame = offers[
             [
-                Offers.price,
-                Offers.quantity,
+                OffersOutput.price,
+                OffersOutput.quantity,
+                OffersOutput.zone,
             ]
-        ].sort_values(by=Offers.price, ascending=True)
+        ].sort_values(by=OffersOutput.price, ascending=True)
 
         cumsum_right: NDArray[np.double] = np.cumsum(
-            offers_by_price[Offers.quantity].values.tolist()
+            offers_by_price[OffersOutput.quantity].values.tolist()
         )
         cumsum_left: NDArray[np.double] = np.insert(cumsum_right[:-1], 0, values=0.0)
         where_inside: NDArray[np.signedinteger] = np.logical_and(
             cumsum_left <= load,
             cumsum_right >= load,
         ).nonzero()[0]
-        sorted_offer_prices: NDArray[np.double] = offers_by_price[Offers.price].values
+        sorted_offer_prices: NDArray[np.double] = offers_by_price[OffersOutput.price].values
         marginal_price = float(
             np.nan
             if len(where_inside) == 0
@@ -85,6 +93,7 @@ class OfferStack:
         price_axis_format: str = "$.0f",
         price_axis_title="marginal price",
         quantity_axis_title: str = "quantity [MW]",
+        color_field: str = OffersOutput.zone,
     ) -> alt.LayerChart:
         """Produces plot of an offer stack."""
 
@@ -108,12 +117,11 @@ class OfferStack:
                 x2=alt.X2(CumulativeOffers.quantity_right),
                 y=alt.Y(CumulativeOffers.price_lower).scale(domainMin=0.0),
                 y2=alt.Y2(CumulativeOffers.price_upper),
-                color=alt.Color(Offers.generator, legend=None),  # remove legend
+                color=alt.Color(color_field),
                 tooltip=[
                     Offers.generator,
                     Offers.tranche,
-                    Offers.quantity,
-                    Offers.price,
+                    OffersOutput.zone,
                 ],
             )
             + aggregate_chart.mark_rule(color=aggregate_load_color).encode(
@@ -134,33 +142,16 @@ class OfferStack:
     @classmethod
     def from_offers_by_zone(
         cls,
-        offers: DataFrame[Offers],
-        generators: DataFrame[Generators],
+        offers: DataFrame[OffersOutput],
         zones: DataFrame[Zones],
-    ) -> dict[str, "OfferStack"]:
+    ) -> dict[str, OfferStack]:
         """Generate plots of offer stacks by bus"""
-
-        # offer_zones: Series[ZoneId] = generators[Generators.zone][
-        #     offers.index.get_level_values(Offers.generator)
-        # ]
-        # offers_with_zone: pd.DataFrame = pd.concat(
-        #     (
-        #         offers,
-        #         pd.Series(
-        #             offer_zones.values,
-        #             index=offers.index,
-        #             name=Generators.zone,
-        #         ),
-        #     ),
-        #     axis="columns",
-        # )
         assert "zone" in offers.columns
         offers_with_zone = offers
-
         return {
             zone: cls.from_offers(
-                offers=DataFrame[Offers](zone_offers),
+                offers=DataFrame[OffersOutput](zone_offers),
                 load=zones.at[zone, Zones.load],
             )
-            for zone, zone_offers in offers_with_zone.groupby(Generators.zone)
+            for zone, zone_offers in offers_with_zone.groupby(OffersOutput.zone)
         }

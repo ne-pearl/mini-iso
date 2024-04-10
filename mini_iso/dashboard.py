@@ -482,20 +482,23 @@ class LmpDashboard(pm.Parameterized):
 
     def offers_panel(self) -> pn.viewable.Viewable:
 
-        offers = self.offers.set_index(OFFERS_INDEX_LABELS)
-        zones = self.zones.set_index(Zones.name)
-        generators = self.generators.set_index(Generators.name)
+        offers: DataFrame[OffersOutput] = self.offers.set_index(OFFERS_INDEX_LABELS)
+        zones: DataFrame[ZonesOutput] = self.zones.set_index(Zones.name)
+        generators: DataFrame[GeneratorsOutput] = self.generators.set_index(
+            GeneratorsOutput.name
+        )
 
         # TODO: Refactor to tabulate marginal price for each zone
         offer_stacks: dict[str, OfferStack] = OfferStack.from_offers_by_zone(
             offers=offers,
             zones=zones,
-            generators=generators,
         )
         offer_stacks_chart: alt.VConcatChart = (
             alt.vconcat(
                 *(
-                    zone_stack.plot().properties(title=zone)
+                    zone_stack.plot(color_field=OffersOutput.generator).properties(
+                        title=zone
+                    )
                     for zone, zone_stack in offer_stacks.items()
                 )
             )
@@ -508,7 +511,9 @@ class LmpDashboard(pm.Parameterized):
             offers=offers,
             load=zones[ZonesOutput.load].sum(),
         )
-        offer_stack_chart: alt.LayerChart = offer_stack.plot().interactive()
+        offer_stack_chart: alt.LayerChart = offer_stack.plot(
+            color_field=OffersOutput.zone
+        ).interactive()
 
         return pn.Tabs(
             (
