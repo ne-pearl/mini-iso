@@ -35,6 +35,7 @@ from mini_iso.panel_helpers import (
     money_dollars,
     power_megawatts,
     real_unspecified,
+    tristate_check,
 )
 
 TAB_GRAPHICAL: Final[str] = "Graphical"
@@ -135,17 +136,21 @@ def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame
     offers_utilization: Series[Fraction] = (
         quantity_dispatched / quantity_offered
     ).fillna(0.0)
-    # fmt: off
-    offers_is_marginal: Series[bool] = (
-        (BIND_TOL <= offers_utilization) 
-                  & (offers_utilization <= 1.0 - BIND_TOL)
-    )
 
-    assert all(offers_utilization >= 0.0)
-    assert all(offers_utilization <= 1.0)
+    def is_marginal(utilization: Fraction) -> bool | None:
+        if utilization == 0.0:
+            return False
+        if 0.0 < utilization < 1.0 - BIND_TOL:
+            return True
+        # We want to return None here, but Pandera doesn't appear to
+        # support the combination:
+        #   is_marginal: Series[bool] = Field(nullable=True)
+        # so we return False instead
+        return False
 
-    # fmt: on
-    return DataFrame[OffersOutput](
+    offers_is_marginal: Series[bool | None] = offers_utilization.map(is_marginal)
+
+    return pd.DataFrame(
         {
             OffersOutput.price: offers[Offers.price].values,
             OffersOutput.quantity: quantity_offered.values,
@@ -391,10 +396,8 @@ class LmpDashboard(pm.Parameterized):
                 .resolve_scale(color="independent")
                 .configure_axis(disable=True, grid=False, domain=False)
                 .properties(
-                    height=600,
-                    width=800,
-                    # height="container",
-                    # width="container",
+                    height="container",
+                    width="container",
                 )
                 .interactive()
             )
@@ -437,7 +440,7 @@ class LmpDashboard(pm.Parameterized):
                         lines_select,
                         nodes_select,
                     ),
-                    pn.pane.Vega(network_chart, height=800),
+                    pn.pane.Vega(network_chart, sizing_mode="stretch_height"),
                 ),
             ),
             (
@@ -518,8 +521,14 @@ class LmpDashboard(pm.Parameterized):
             (
                 TAB_GRAPHICAL,
                 pn.Tabs(
-                    ("Aggregate", pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height")),
-                    ("By Zone", pn.pane.Vega(offer_stacks_chart, sizing_mode="stretch_width")),
+                    (
+                        "Aggregate",
+                        pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height"),
+                    ),
+                    (
+                        "By Zone",
+                        pn.pane.Vega(offer_stacks_chart, sizing_mode="stretch_width"),
+                    ),
                 ),
             ),
             (
@@ -531,7 +540,7 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.quantity: power_megawatts.formatter,
                         OffersOutput.quantity_dispatched: power_megawatts.formatter,
                         OffersOutput.utilization: fraction_percentage.formatter,
-                        OffersOutput.is_marginal: boolean_check.formatter,
+                        OffersOutput.is_marginal: tristate_check.formatter,
                     },
                     show_index=False,
                     text_align={
@@ -539,7 +548,7 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.quantity: power_megawatts.align,
                         OffersOutput.quantity_dispatched: power_megawatts.align,
                         OffersOutput.utilization: fraction_percentage.align,
-                        OffersOutput.is_marginal: boolean_check.align,
+                        OffersOutput.is_marginal: tristate_check.align,
                     },
                 ),
             ),
@@ -603,16 +612,21 @@ class LmpDashboard(pm.Parameterized):
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(
-                    pn.Card(self.pricer.inputs_panel(), title="Inputs"),
-                    pn.Tabs(
-                        ("Lines", self.lines_panel()),
-                        ("Generators", self.generators_panel()),
-                        ("Offers", self.offers_panel()),
-                        ("Zones", self.zones_panel()),
+                    pn.Column(
+                        pn.pane.Markdown("### Inputs"),
+                        self.pricer.inputs_panel(),
+                    ),
+                    pn.Column(
+                        pn.pane.Markdown("### Outputs"),
+                        pn.Tabs(
+                            ("Lines", self.lines_panel()),
+                            ("Generators", self.generators_panel()),
+                            ("Offers", self.offers_panel()),
+                            ("Zones", self.zones_panel()),
+                        ),
                     ),
                 )
             ],
             sidebar=[],
-            sidebar_width=0,
             title="Mini-ISO: Dashboard",
         )

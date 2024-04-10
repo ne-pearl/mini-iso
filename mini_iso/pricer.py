@@ -178,7 +178,6 @@ class LmpPricer(pn.viewable.Viewer):
                     Offers.quantity: power_megawatts.formatter,
                     Offers.price: money_dollars.formatter,
                 },
-                height=400,
                 show_columns=[
                     Offers.generator,
                     Offers.tranche,

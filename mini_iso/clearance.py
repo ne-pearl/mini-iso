@@ -44,24 +44,18 @@ Susceptance: TypeAlias = float  # (1/reactance)
 
 class GeneratorsSolution(DataFrameModel):
     name: Index[str]
-    # cost: Series[MoneyUSD]
-    # revenue: Series[MoneyUSD]
-    # benefit: Series[MoneyUSD]
-    # output: Series[PowerMW]
 
 
 class LinesSolution(DataFrameModel):
     # FIXME: For consistency, Index[int] should be Index[str]
     name: Index[int] = Field(unique=True)
     quantity: Series[PowerMW] = Field(coerce=True)
-    # slack: Series[PowerMW] = Field(coerce=True)
 
 
 class OffersSolution(DataFrameModel):
     generator: Index[str]
     tranche: Index[str]
     quantity_dispatched: Series[PowerMW] = Field(coerce=True)
-    # is_marginal: Series[bool] = Field(coerce=True)
 
 
 class ZonesSolution(DataFrameModel):
@@ -259,21 +253,6 @@ def solve(
     )
     price.index.name = Zones.name
 
-    # # FIXME: Move to post-processing
-    # # Benefit to generators
-    # cost: dict[GeneratorId, MoneyUSD] = {
-    #     g: sum(p[g, t].x for t in Tg[g]) * c
-    #     for g, c in zip(generators_df[Generators.name], generators_df[Generators.cost])
-    # }
-    # punishment: MoneyUSD = 0.0  # FIXME: punishment price?
-    # revenue: dict[GeneratorId, MoneyUSD] = {
-    #     g: price[Gz1[g]] * sum(p[g, t].x for t in Tg[g]) for g in G
-    # }
-    # benefit_all: dict[GeneratorId, MoneyUSD] = {
-    #     g: revenue[g] - cost[g] - punishment for g in G
-    # }
-    # benefit_selected = {g: benefit_all[g] for g in Gd}
-
     line_power: Series[PowerMW] = pd.Series({l_: w[l_].x for l_ in L})
     line_power.index.name = Lines.name
 
@@ -296,22 +275,10 @@ def solve(
     mismatch: PowerMW = total_generation - total_load
     assert abs(mismatch) / total_load < 1e-6
 
-    # # FIXME: Gymnastics to get a named index!
-    # generators_temporary = pd.DataFrame(
-    #     {
-    #         GeneratorsSolution.cost: cost,
-    #         GeneratorsSolution.revenue: revenue,
-    #         GeneratorsSolution.benefit: benefit_selected,
-    #     }
-    # )
-    # generators_temporary.index.name = Generators.name
-
     return status, Solution(
-        # generators=DataFrame[GeneratorsSolution](generators_temporary),
         lines=DataFrame[LinesSolution](
             {
                 LinesSolution.quantity: line_power,
-                # LinesSolution.slack: line_slack,
             }
         ),
         zones=DataFrame[ZonesSolution](
@@ -365,7 +332,15 @@ class OffersOutput(DataFrameModel):
     quantity: Series[PowerMW] = Field(coerce=True)
     quantity_dispatched: Series[PowerMW] = Field(coerce=True)
     utilization: Series[Fraction] = Field(coerce=True)
-    is_marginal: Series[bool] = Field(coerce=True)
+    # The "nullable=True" appears to be ignored, perhaps
+    # because of this:
+    # https://pandera.readthedocs.io/en/stable/dtype_validation.html#how-data-types-interact-with-nullable
+    #   "datatypes that are inherently not nullable will
+    #    fail even if you specify nullable=True because
+    #    pandera considers type checks a first-class check
+    #    that’s distinct from any downstream check that
+    #    you may want to apply to the data"
+    is_marginal: Series[bool] = Field(nullable=True)
 
 
 class ZonesOutput(ZonesSolution):
@@ -384,122 +359,3 @@ class Output:
     lines: DataFrame[LinesOutput]
     offers: DataFrame[OffersOutput]
     zones: DataFrame[ZonesOutput]
-
-
-def post_process(input_: Input, solution: Solution) -> Output:
-
-    all_offers_data = pd.concat((input_.offers, solution.offers), axis="columns")
-    offers_by_generator = all_offers_data.groupby(Offers.generator)
-    generators_dispatched: Series[PowerMW] = offers_by_generator[
-        OffersSolution.quantity_dispatched
-    ].sum()
-    assert generators_dispatched.index.name == Offers.generator
-    generators_dispatched.index.name = GeneratorsOutput.name
-    generators_capacity: Series[PowerMW] = input_.generators[Generators.capacity]
-
-    generators = DataFrame[GeneratorsOutput](
-        {
-            **dict(solution.generators),
-            GeneratorsOutput.capacity: generators_capacity,
-            GeneratorsOutput.cost: input_.generators[Generators.cost],
-            GeneratorsOutput.zone: input_.generators[Generators.zone],
-            GeneratorsOutput.dispatched: generators_dispatched,
-            GeneratorsOutput.utilization: generators_dispatched / generators_capacity,
-        }
-    )
-
-    x_of_zones = input_.zones[Zones.x]
-    y_of_zones = input_.zones[Zones.y]
-    zone_from_of_lines = input_.lines[Lines.zone_from]
-    zone_to_of_lines = input_.lines[Lines.zone_to]
-
-    lines_capacity: Series[PowerMw] = input_.lines[Lines.capacity]
-    lines_slack: Series[PowerMW] = (
-        lines_capacity - solution.lines[LinesSolution.quantity].abs()
-    )
-    lines_utilization: Series[Fraction] = 1.0 - lines_slack / lines_capacity
-    lines_is_critical: Series[bool] = (BIND_TOL - 1.0) <= lines_utilization
-
-    lines = DataFrame[LinesOutput](
-        {
-            **dict(solution.lines),
-            LinesOutput.abs_flow: solution.lines[LinesSolution.quantity].abs(),
-            LinesOutput.capacity: lines_capacity,
-            LinesOutput.slack: lines_slack,
-            LinesOutput.utilization: lines_utilization,
-            LinesOutput.is_critical: lines_is_critical,
-            LinesOutput.x_from: x_of_zones[zone_from_of_lines].values,
-            LinesOutput.y_from: y_of_zones[zone_from_of_lines].values,
-            LinesOutput.x_to: x_of_zones[zone_to_of_lines].values,
-            LinesOutput.y_to: y_of_zones[zone_to_of_lines].values,
-        }
-    )
-
-    generator_of_offers: Index[GeneratorId] = input_.offers.index.get_level_values(
-        Offers.generator
-    )
-    zone_of_generators: Series[ZoneId] = input_.generators[Generators.zone]
-
-    # Utilization of each offer
-    offers_utilization: Series[Fraction] = (
-        solution.offers[OffersSolution.quantity_dispatched]
-        / input_.offers[Offers.quantity]
-    )
-    # fmt: off
-    offers_is_marginal: Series[bool] = (
-        (BIND_TOL <= offers_utilization) 
-                  & (offers_utilization <= 1.0 - BIND_TOL)
-    )
-    # fmt: on
-
-    offers = DataFrame[OffersOutput](
-        {
-            **dict(solution.offers),
-            OffersOutput.zone: zone_of_generators[generator_of_offers].values,
-            OffersOutput.utilization: offers_utilization,
-            OffersOutput.is_marginal: offers_is_marginal,
-        }
-    )
-
-    # Sum dispatched output over each zone's generators:
-    zones_generation_temporary: Series[PowerMW] = generators.groupby(Generators.zone)[
-        [
-            GeneratorsOutput.capacity,
-            GeneratorsOutput.dispatched,
-        ]
-    ].sum()
-
-    # Zones needn't all have generators: Update index and replace NaN with 0.0
-    zones_generation: pd.DataFrame = pd.merge(
-        left=zones_generation_temporary,
-        left_index=True,
-        right=input_.zones[[]],  # index only
-        right_index=True,
-        how="right",
-    ).fillna(0.0)
-
-    zones_dispatched: Series[PowerMW] = zones_generation[GeneratorsOutput.dispatched]
-    zones_capacity: Series[PowerMW] = zones_generation[GeneratorsOutput.capacity]
-    # Replace 0/0=NaN with 0
-    zones_utilization: Series[Fraction] = (zones_dispatched / zones_capacity).fillna(
-        0.0
-    )
-
-    zones = DataFrame[ZonesOutput](
-        {
-            **dict(solution.zones),
-            ZonesOutput.load: input_.zones[Zones.load],
-            ZonesOutput.dispatched: zones_dispatched,
-            ZonesOutput.capacity: zones_capacity,
-            ZonesOutput.utilization: zones_utilization,
-            ZonesOutput.x: input_.zones[Zones.x],
-            ZonesOutput.y: input_.zones[Zones.y],
-        }
-    )
-
-    return Output(
-        generators=generators,
-        lines=lines,
-        offers=offers,
-        zones=zones,
-    )

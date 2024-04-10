@@ -47,28 +47,24 @@ class OfferStack:
     @classmethod
     def from_offers(
         cls,
-        offers: DataFrame[OffersOutput],
+        offers: DataFrame[Offers],
         load: PowerMW,
     ) -> OfferStack:
         """Initialize from offers."""
 
-        offers_by_price: pd.DataFrame = offers[
-            [
-                OffersOutput.price,
-                OffersOutput.quantity,
-                OffersOutput.zone,
-            ]
-        ].sort_values(by=OffersOutput.price, ascending=True)
+        offers_by_price: pd.DataFrame = offers.sort_values(
+            by=Offers.price, ascending=True
+        )
 
         cumsum_right: NDArray[np.double] = np.cumsum(
-            offers_by_price[OffersOutput.quantity].values.tolist()
+            offers_by_price[Offers.quantity].values.tolist()
         )
         cumsum_left: NDArray[np.double] = np.insert(cumsum_right[:-1], 0, values=0.0)
         where_inside: NDArray[np.signedinteger] = np.logical_and(
             cumsum_left <= load,
             cumsum_right >= load,
         ).nonzero()[0]
-        sorted_offer_prices: NDArray[np.double] = offers_by_price[OffersOutput.price].values
+        sorted_offer_prices: NDArray[np.double] = offers_by_price[Offers.price].values
         marginal_price = float(
             np.nan
             if len(where_inside) == 0
