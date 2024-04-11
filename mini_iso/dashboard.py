@@ -5,7 +5,7 @@ from pandera.typing import DataFrame, Series
 import pandas as pd
 import panel as pn
 import param as pm
-from mini_iso.demo_stacks import Clearance
+from mini_iso.offer_stacks import Clearance
 from mini_iso.offer_stacks_ideal import OfferStack
 from mini_iso.panel_helpers import labeled
 from mini_iso.pricer import LmpPricer
