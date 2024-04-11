@@ -24,6 +24,9 @@ pn.extension(
     notifications=True,
     sizing_mode="stretch_width",
 )
+# Enables loading indicator globally
+# https://panel.holoviz.org/how_to/param/examples/loading.html
+pn.param.ParamMethod.loading_indicator = True
 
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
