@@ -284,7 +284,7 @@ class Bidder(pn.viewable.Viewer):
                                         formatters={
                                             ZonesPrice.price: money_dollars.formatter,
                                         },
-                                        show_index=False,
+                                        show_index=True,
                                         text_align={
                                             ZonesPrice.price: money_dollars.align,
                                         },

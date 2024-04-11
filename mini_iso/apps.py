@@ -48,10 +48,10 @@ if __name__ != "__main__":
     pn.serve(
         admin=True,
         panels={
-            "bidding": new_bidding_session,
-            "auction": auction,
-            "dashboard": LmpDashboard(pricer=auction.pricer),
-            "pricer": auction.pricer,
+            "Auction": auction,
+            # "Back-End": auction.pricer,
+            "Bidding": new_bidding_session,
+            "Dashboard": LmpDashboard(pricer=auction.pricer),
         },
         port=PORT,
         title="Mini-ISO: Application Menu",
