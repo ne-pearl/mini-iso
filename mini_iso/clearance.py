@@ -5,26 +5,26 @@ import sys
 from typing import Final
 import gurobipy as grb
 import pandas as pd
-from pandera import DataFrameModel, Field
-from pandera.api.pandas import model_config
-from pandera.typing import DataFrame, Index, Series
+from pandera.typing import DataFrame, Series
 from mini_iso.dataframes import (
     OFFERS_INDEX_LABELS,
-    Fraction,
     Input,
     Generators,
     GeneratorId,
     LineId,
     Lines,
+    LinesSolution,
     MoneyUSDPerMW,
-    Offers,
     OfferId,
+    Offers,
+    OffersSolution,
     PowerMW,
-    SpatialCoordinate,
     Susceptance,
     TrancheId,
-    Zones,
     ZoneId,
+    Zones,
+    ZonesOutput,
+    ZonesSolution,
 )
 
 
@@ -37,27 +37,6 @@ class Status(enum.Enum):
 
 # Tolerance for detection of binding constraints
 BIND_TOL: Final[float] = 1.0 / 100.0
-
-
-class GeneratorsSolution(DataFrameModel):
-    name: Index[str]
-
-
-class LinesSolution(DataFrameModel):
-    # FIXME: For consistency, Index[int] should be Index[str]
-    name: Index[int] = Field(unique=True)
-    quantity: Series[PowerMW] = Field(coerce=True)
-
-
-class OffersSolution(DataFrameModel):
-    generator: Index[str]
-    tranche: Index[str]
-    quantity_dispatched: Series[PowerMW] = Field(coerce=True)
-
-
-class ZonesSolution(DataFrameModel):
-    name: Index[str] = Field(unique=True)
-    price: Series[MoneyUSDPerMW] = Field(coerce=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -283,68 +262,3 @@ def clear_auction(
             }
         ),
     )
-
-
-class GeneratorsOutput(GeneratorsSolution):
-    capacity: Series[PowerMW] = Field(coerce=True)
-    zone: Series[ZoneId]
-    dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[Fraction] = Field(coerce=True)
-
-
-class LinesOutput(LinesSolution):
-    zone_from: Series[ZoneId]
-    zone_to: Series[ZoneId]
-    susceptance: Series[Susceptance] = Field(coerce=True)
-    abs_flow: Series[PowerMW] = Field(coerce=True)
-    capacity: Series[PowerMW] = Field(coerce=True)
-    slack: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[Fraction]
-    is_critical: Series[bool]
-    x_from: Series[SpatialCoordinate] = Field(coerce=True)
-    y_from: Series[SpatialCoordinate] = Field(coerce=True)
-    x_to: Series[SpatialCoordinate] = Field(coerce=True)
-    y_to: Series[SpatialCoordinate] = Field(coerce=True)
-    x_mid: Series[SpatialCoordinate] = Field(coerce=True)
-    y_mid: Series[SpatialCoordinate] = Field(coerce=True)
-
-
-class OffersOutput(DataFrameModel):
-    class Config(model_config.BaseConfig):
-        multiindex_name = "offer"
-        multiindex_strict = True
-        unique_column_names: bool = True
-
-    generator: Index[str]
-    tranche: Index[str]
-    zone: Series[ZoneId]
-    price: Series[MoneyUSDPerMW] = Field(coerce=True)
-    quantity: Series[PowerMW] = Field(coerce=True)
-    quantity_dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[Fraction] = Field(coerce=True)
-    # The "nullable=True" appears to be ignored, perhaps
-    # because of this:
-    # https://pandera.readthedocs.io/en/stable/dtype_validation.html#how-data-types-interact-with-nullable
-    #   "datatypes that are inherently not nullable will
-    #    fail even if you specify nullable=True because
-    #    pandera considers type checks a first-class check
-    #    that’s distinct from any downstream check that
-    #    you may want to apply to the data"
-    is_marginal: Series[bool] = Field(nullable=True)
-
-
-class ZonesOutput(ZonesSolution):
-    load: Series[PowerMW] = Field(coerce=True)
-    capacity: Series[PowerMW] = Field(coerce=True)
-    dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[PowerMW] = Field(coerce=True)
-    x: Series[SpatialCoordinate] = Field(coerce=True)
-    y: Series[SpatialCoordinate] = Field(coerce=True)
-
-
-@dataclass(frozen=True, slots=True)
-class Output:
-    generators: DataFrame[GeneratorsOutput]
-    lines: DataFrame[LinesOutput]
-    offers: DataFrame[OffersOutput]
-    zones: DataFrame[ZonesOutput]

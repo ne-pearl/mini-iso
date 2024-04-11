@@ -9,11 +9,11 @@ from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Index, Series
 from mini_iso.dataframes import (
     Offers,
+    OffersOutput,
     PowerMW,
     MoneyUSDPerMW,
     Zones,
 )
-from mini_iso.clearance import OffersOutput
 
 Self: TypeAlias = None
 LOAD_KEY = "Load"
