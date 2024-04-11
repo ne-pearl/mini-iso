@@ -5,7 +5,9 @@ from pandera.typing import DataFrame, Series
 import pandas as pd
 import panel as pn
 import param as pm
-from mini_iso.offer_stacks import OfferStack
+from mini_iso.demo_stacks import Clearance
+from mini_iso.offer_stacks_ideal import OfferStack
+from mini_iso.panel_helpers import labeled
 from mini_iso.pricer import LmpPricer
 from mini_iso.dataframes import (
     OFFERS_INDEX_LABELS,
@@ -59,6 +61,33 @@ def make_bar_chart(
         )
     )
 
+def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
+
+    offer_stacks: dict[ZoneId, Clearance] = Clearance.make_stacks(
+        generators=pricer.generators,
+        lines=pricer.lines,
+        lines_flow=pricer.lines_flow,
+        offers=pricer.offers,
+        offers_dispatched=pricer.offers_dispatched,
+        zones=pricer.zones,
+        zones_price=pricer.zones_price,
+    )
+
+    # for zone, clearance in offer_stacks.items():
+    #     print(zone)
+    #     print("=" * len(zone))
+    #     print(clearance.stack)
+    #     print("   price:", clearance.marginal_price)
+    #     print("    load:", clearance.load)
+    #     print("net prod:", clearance.stack[OfferStack.dispatched_right].max())
+    #     print()
+
+    return alt.vconcat(
+        *(
+            zone_stack.plot().properties(title=zone)
+            for zone, zone_stack in offer_stacks.items()
+        )
+    ).interactive()
 
 def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame:
 
@@ -487,16 +516,15 @@ class LmpDashboard(pm.Parameterized):
 
         offers: DataFrame[OffersOutput] = self.offers.set_index(OFFERS_INDEX_LABELS)
         zones: DataFrame[ZonesOutput] = self.zones.set_index(Zones.name)
-        generators: DataFrame[GeneratorsOutput] = self.generators.set_index(
-            GeneratorsOutput.name
-        )
+
+        offer_stacks_chart_zonal: alt.VConcatChart = make_zone_stacks(self.pricer)
 
         # TODO: Refactor to tabulate marginal price for each zone
         offer_stacks: dict[str, OfferStack] = OfferStack.from_offers_by_zone(
             offers=offers,
             zones=zones,
         )
-        offer_stacks_chart: alt.VConcatChart = (
+        offer_stacks_chart_ideal: alt.VConcatChart = (
             alt.vconcat(
                 *(
                     zone_stack.plot(color_field=OffersOutput.generator).properties(
@@ -523,12 +551,15 @@ class LmpDashboard(pm.Parameterized):
                 TAB_GRAPHICAL,
                 pn.Tabs(
                     (
-                        "Aggregate",
-                        pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height"),
+                        "By Zone",
+                        pn.Row(
+                            labeled(pn.pane.Vega(offer_stacks_chart_zonal), name="Actual"),
+                            labeled(pn.pane.Vega(offer_stacks_chart_ideal), name="Isolated"),
+                        )
                     ),
                     (
-                        "By Zone",
-                        pn.pane.Vega(offer_stacks_chart, sizing_mode="stretch_width"),
+                        "Ideal Aggregate",
+                        pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height"),
                     ),
                 ),
             ),
@@ -613,18 +644,15 @@ class LmpDashboard(pm.Parameterized):
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(
-                    pn.Column(
-                        pn.pane.Markdown("### Inputs"),
-                        self.pricer.inputs_panel(),
-                    ),
-                    pn.Column(
-                        pn.pane.Markdown("### Outputs"),
+                    labeled(self.pricer.inputs_panel(), name="Inputs"),
+                    labeled(
                         pn.Tabs(
                             ("Lines", self.lines_panel()),
                             ("Generators", self.generators_panel()),
                             ("Offers", self.offers_panel()),
                             ("Zones", self.zones_panel()),
                         ),
+                        name="Outputs"
                     ),
                 )
             ],
