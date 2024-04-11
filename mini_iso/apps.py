@@ -43,8 +43,8 @@ def load_auction(constrained: bool) -> Auction:
 auction: Auction = load_auction(constrained=True)
 
 
-def new_bidding_session(auction=auction):
-    return Bidder(auction)
+def new_bidding_session(auction=auction, Bidder_=Bidder):
+    return Bidder_(auction)
 
 
 if __name__ != "__main__":
