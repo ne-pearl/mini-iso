@@ -19,7 +19,6 @@ ZoneId: TypeAlias = str
 OfferId: TypeAlias = tuple[GeneratorId, TrancheId]
 Fraction: TypeAlias = float
 MassKgPerMW: TypeAlias = float
-MoneyUSD: TypeAlias = float
 MoneyUSDPerMW: TypeAlias = float
 PowerMW: TypeAlias = float
 SpatialCoordinate: TypeAlias = float
@@ -68,20 +67,8 @@ class Generators(DataFrameModel):
     # Inputs
     name: Index[GeneratorId] = Field(check_name=True, unique=True)
     capacity: Series[PowerMW] = _float_field()
-    # cost: Series[MoneyUSDPerMW] = _float_field()
     zone: Series[ZoneId]
     is_included: Optional[Series[bool]] = Field(default=True)
-
-    # TODO
-    # co2_intensity: Series[MassKgPerMW] = _float_field()
-    # nox_intensity: Series[MassKgPerMW] = _float_field()
-    # so2_intensity: Series[MassKgPerMW] = _float_field()
-
-    # Calculated
-    # price: Series[MoneyUSD] = _float_field()
-    # profit: Series[MoneyUSD] = _float_field()
-    # x: Series[SpatialCoordinate] = _float_field()
-    # y: Series[SpatialCoordinate] = _float_field()
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> pd.DataFrame:
@@ -144,7 +131,7 @@ class Zones(DataFrameModel):
     load: Series[PowerMW] = _float_field()
 
     # Calculated
-    price: Series[MoneyUSD] = _float_field()
+    price: Series[MoneyUSDPerMW] = _float_field()
     x: Series[SpatialCoordinate] = _float_field()
     y: Series[SpatialCoordinate] = _float_field()
 
@@ -173,7 +160,7 @@ class OffersDispatched(DataFrameModel):
 
 class ZonesPrice(DataFrameModel):
     name: Index[str] = Field(check_name=True, unique=True)
-    price: Series[MoneyUSD] = _float_field()
+    price: Series[MoneyUSDPerMW] = _float_field()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)

@@ -5,7 +5,7 @@ import pandas as pd
 from pandera.typing import DataFrame
 import panel as pn
 import param as pm
-from mini_iso.clearance import Solution, Status, solve
+from mini_iso.clearance import Solution, Status, clear_auction
 from mini_iso.dataframes import (
     OFFERS_INDEX_LABELS,
     Generators,
@@ -115,7 +115,7 @@ class LmpPricer(pn.viewable.Viewer):
 
         solution: Solution | None
         status: Status
-        status, solution = solve(inputs)
+        status, solution = clear_auction(inputs)
 
         lines_flow: pd.Series
         offers_dispatched: pd.Series

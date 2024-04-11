@@ -2,7 +2,7 @@ import enum
 from dataclasses import dataclass, fields
 import math
 import sys
-from typing import Any, TypeAlias
+from typing import Final, TypeAlias
 
 import gurobipy as grb
 import numpy as np
@@ -12,13 +12,21 @@ from pandera.api.pandas import model_config
 from pandera.typing import DataFrame, Index, Series
 from mini_iso.dataframes import (
     OFFERS_INDEX_LABELS,
+    Fraction,
     Input,
     Generators,
+    GeneratorId,
+    LineId,
     Lines,
     MoneyUSDPerMW,
     Offers,
+    OfferId,
+    PowerMW,
     SpatialCoordinate,
+    Susceptance,
+    TrancheId,
     Zones,
+    ZoneId,
 )
 
 
@@ -30,17 +38,7 @@ class Status(enum.Enum):
 
 
 # Tolerance for detection of binding constraints
-BIND_TOL = 1.0 / 100.0
-
-GeneratorId: TypeAlias = str
-LineId: TypeAlias = int
-TranchId: TypeAlias = str
-ZoneId: TypeAlias = str
-OfferId: TypeAlias = tuple[GeneratorId, TranchId]
-Fraction: TypeAlias = float
-PowerMW: TypeAlias = float
-MoneyUSD: TypeAlias = float
-Susceptance: TypeAlias = float  # (1/reactance)
+BIND_TOL: Final[float] = 1.0 / 100.0
 
 
 class GeneratorsSolution(DataFrameModel):
@@ -61,7 +59,7 @@ class OffersSolution(DataFrameModel):
 
 class ZonesSolution(DataFrameModel):
     name: Index[str] = Field(unique=True)
-    price: Series[MoneyUSD] = Field(coerce=True)
+    price: Series[MoneyUSDPerMW] = Field(coerce=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,16 +70,16 @@ class Solution:
     zones: DataFrame[ZonesSolution]
 
 
-def solve(
-    input_: Input,
+def clear_auction(
+    inputs: Input,
     base_power: PowerMW = 1000,  # big_m: float = 10000,
 ) -> tuple[Status, Solution | None]:
 
     # Allow index levels and columns to be referenced uniformly
-    generators_df = input_.generators.reset_index()
-    offers_df = input_.offers.reset_index()
-    lines_df = input_.lines.reset_index()
-    zones_df = input_.zones.reset_index()
+    generators_df = inputs.generators.reset_index()
+    offers_df = inputs.offers.reset_index()
+    lines_df = inputs.lines.reset_index()
+    zones_df = inputs.zones.reset_index()
 
     # Variable sets
     # FIXME: Ultimately, replace each List with Set
@@ -92,7 +90,7 @@ def solve(
     Gz1: dict[GeneratorId, ZoneId] = dict(
         zip(generators_df[Generators.name], generators_df[Generators.zone])
     )
-    Tg: dict[GeneratorId, list[TranchId]] = {g: [] for g in G}
+    Tg: dict[GeneratorId, list[TrancheId]] = {g: [] for g in G}
     Tg.update(
         (str(g), list(group[Offers.tranche]))
         for g, group in offers_df.groupby(Offers.generator)
@@ -148,7 +146,7 @@ def solve(
     # FIXME: Use these updated bounds in place of extra constraints
     # pmax.update({(g, t): 0.0 for g in GP for t in Tg[g]})  # excluded units
 
-    tranche_cost: dict[OfferId, MoneyUSD] = {
+    tranche_cost: dict[OfferId, MoneyUSDPerMW] = {
         (str(g), str(t)): price
         for g, group in offers_df.groupby(Offers.generator)
         for t, price in zip(group[Offers.tranche], group[Offers.price])
@@ -270,7 +268,7 @@ def solve(
     ).set_index(OFFERS_INDEX_LABELS)
 
     # Sanity check
-    total_load: PowerMW = input_.zones[ZonesOutput.load].sum()
+    total_load: PowerMW = inputs.zones[ZonesOutput.load].sum()
     total_generation: PowerMW = dispatched[Offers.quantity].sum()
     mismatch: PowerMW = total_generation - total_load
     assert abs(mismatch) / total_load < 1e-6
@@ -328,7 +326,7 @@ class OffersOutput(DataFrameModel):
     generator: Index[str]
     tranche: Index[str]
     zone: Series[ZoneId]
-    price: Series[MoneyUSD] = Field(coerce=True)
+    price: Series[MoneyUSDPerMW] = Field(coerce=True)
     quantity: Series[PowerMW] = Field(coerce=True)
     quantity_dispatched: Series[PowerMW] = Field(coerce=True)
     utilization: Series[Fraction] = Field(coerce=True)
