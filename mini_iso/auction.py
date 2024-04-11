@@ -155,6 +155,8 @@ class Bidder(pn.viewable.Viewer):
     offers_dispatched = pm.DataFrame(label="Offers Dispatched")
     submit = pm.Event(label="Submit")
     reset = pm.Event(label="Reset")
+    cost = pm.Number(label="Marginal Cost")
+    zone = pm.String(label="Zone")
 
     zones_price = pm.DataFrame(label="Zone Prices", allow_refs=True, instantiate=False)
 
@@ -182,6 +184,14 @@ class Bidder(pn.viewable.Viewer):
         self.offers_pending = self.auction.offers_pending[rows]
         self.offers_committed = self.auction.offers_committed[rows]
         self.offers_dispatched = self.auction.offers_dispatched[rows]
+        self.zone = self.auction.pricer.generators.at[
+            self.generator_name,
+            Generators.zone,
+        ]
+        self.cost = self.auction.pricer.generators.at[
+            self.generator_name,
+            Generators.cost,
+        ]
 
     @pn.depends("submit", watch=True)
     def _on_submit(self) -> None:
@@ -211,20 +221,8 @@ class Bidder(pn.viewable.Viewer):
                         self.param.generator_name,
                         name="Generator",
                     ),
-                    pn.widgets.StaticText(
-                        name="Zone",
-                        value=self.auction.pricer.generators.at[
-                            self.generator_name,
-                            Generators.zone,
-                        ],
-                    ),
-                    pn.widgets.StaticText(
-                        name="Marginal Cost",
-                        value=self.auction.pricer.generators.at[
-                            self.generator_name,
-                            Generators.cost,
-                        ],
-                    ),
+                    pn.widgets.StaticText.from_param(self.param.zone),
+                    pn.widgets.StaticText.from_param(self.param.cost),
                     pn.Row(
                         pn.Column(
                             pn.Card(
