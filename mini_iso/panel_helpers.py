@@ -1,12 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import re
-from typing import Literal, TypeAlias
+from typing import Literal
 from bokeh.models.widgets.tables import (
     CellFormatter,
     NumberFormatter,
 )
 import numpy as np
+import pandas as pd
 import panel as pn
 import param as pm
 from panel.widgets import Tabulator
@@ -90,7 +91,6 @@ def tabulator_item(
     disabled: bool = True,
     **kwargs,
 ) -> tuple[str, Tabulator]:
-
     name_: str = name or param.label
     assert name_ is not None
 

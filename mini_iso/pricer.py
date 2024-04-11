@@ -1,6 +1,4 @@
 from __future__ import annotations
-import logging
-from typing import Final
 import pandas as pd
 from pandera.typing import DataFrame
 import panel as pn
@@ -49,7 +47,6 @@ def _validate_outputs(
 
 
 class LmpPricer(pn.viewable.Viewer):
-
     # Inputs
     generators = pm.DataFrame(label="Generators")
     lines = pm.DataFrame(label="Lines")
@@ -104,7 +101,6 @@ class LmpPricer(pn.viewable.Viewer):
         self.recompute()
 
     def recompute(self) -> None:
-
         print("Attempting to clear market...")
 
         inputs = Input(

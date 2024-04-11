@@ -1,11 +1,9 @@
 import enum
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 import math
 import sys
-from typing import Final, TypeAlias
-
+from typing import Final
 import gurobipy as grb
-import numpy as np
 import pandas as pd
 from pandera import DataFrameModel, Field
 from pandera.api.pandas import model_config
@@ -74,7 +72,6 @@ def clear_auction(
     inputs: Input,
     base_power: PowerMW = 1000,  # big_m: float = 10000,
 ) -> tuple[Status, Solution | None]:
-
     # Allow index levels and columns to be referenced uniformly
     generators_df = inputs.generators.reset_index()
     offers_df = inputs.offers.reset_index()
@@ -87,9 +84,6 @@ def clear_auction(
     L: list[LineId] = list(lines_df[Lines.name])
     Z: list[ZoneId] = list(zones_df[Zones.name])
 
-    Gz1: dict[GeneratorId, ZoneId] = dict(
-        zip(generators_df[Generators.name], generators_df[Generators.zone])
-    )
     Tg: dict[GeneratorId, list[TrancheId]] = {g: [] for g in G}
     Tg.update(
         (str(g), list(group[Offers.tranche]))
@@ -317,7 +311,6 @@ class LinesOutput(LinesSolution):
 
 
 class OffersOutput(DataFrameModel):
-
     class Config(model_config.BaseConfig):
         multiindex_name = "offer"
         multiindex_strict = True
@@ -352,7 +345,6 @@ class ZonesOutput(ZonesSolution):
 
 @dataclass(frozen=True, slots=True)
 class Output:
-
     generators: DataFrame[GeneratorsOutput]
     lines: DataFrame[LinesOutput]
     offers: DataFrame[OffersOutput]

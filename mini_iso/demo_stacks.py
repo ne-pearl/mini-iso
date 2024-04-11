@@ -140,7 +140,6 @@ class Clearance:
         zones: DataFrame[Zones],
         zones_price: DataFrame[ZonesPrice],
     ) -> dict[ZoneId, Clearance]:
-
         zone_from: Series[str] = lines[Lines.zone_from]
         zone_to: Series[str] = lines[Lines.zone_to]
         line_quantity: Series[PowerMW] = lines_flow[LinesFlow.quantity]
@@ -211,7 +210,6 @@ class Clearance:
         result: dict[ZoneId, cls] = {}
 
         for zone, stack_unsorted in augmented_stack.groupby(Generators.zone):
-
             stack = stack_unsorted.sort_values(Offers.price, ascending=True)
             quantity_exported: PowerMW = outflow_quantities[LinesFlow.quantity].get(
                 zone, default=0.0
@@ -251,6 +249,7 @@ class Clearance:
 
 def _main():
     from mini_iso.dashboard import LmpPricer, make_zone_stacks
+
     inputs: Input = load_system(constrained=True)
     pricer = LmpPricer.from_inputs(inputs)
     chart: alt.VConc = make_zone_stacks(pricer)

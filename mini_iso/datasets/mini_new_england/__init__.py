@@ -1,7 +1,5 @@
 import pathlib
-import re
 from typing import Literal
-import numpy as np
 import pandas as pd
 from mini_iso.dataframes import Fraction, Input, Lines, Offers, PowerMW, Zones
 from mini_iso.panel_helpers import index_digits_key
@@ -12,7 +10,6 @@ def clean(df: pd.DataFrame, orient: Literal["tight"] = "tight") -> pd.DataFrame:
 
 
 def load_system(constrained: bool = False) -> Input:
-
     raw = Input.from_json(pathlib.Path(__file__).parent / "mini_new_england.json")
 
     DEMAND_FRACTION: Fraction

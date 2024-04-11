@@ -63,7 +63,6 @@ def make_bar_chart(
 
 
 def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
-
     offer_stacks: dict[ZoneId, Clearance] = Clearance.make_stacks(
         generators=pricer.generators,
         lines=pricer.lines,
@@ -92,7 +91,6 @@ def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
 
 
 def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame:
-
     generators_dispatched: Series[PowerMW] = offers.groupby(Offers.generator)[
         OffersDispatched.quantity_dispatched
     ].sum()
@@ -115,7 +113,6 @@ def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataF
 
 
 def _augment_lines_dataframe(pricer: LmpPricer) -> DataFrame:
-
     x_of_zones: Series[SpatialCoordinate] = pricer.zones[Zones.x]
     y_of_zones: Series[SpatialCoordinate] = pricer.zones[Zones.y]
     zone_from_of_lines: Series[ZoneId] = pricer.lines[Lines.zone_from]
@@ -157,7 +154,6 @@ def _augment_lines_dataframe(pricer: LmpPricer) -> DataFrame:
 
 
 def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame:
-
     generator_of_offers: Series[GeneratorId] = offers[Offers.generator]
     zone_of_generators: Series[ZoneId] = pricer.generators[Generators.zone]
     zone = pd.Series(zone_of_generators[generator_of_offers].values, index=offers.index)
@@ -202,7 +198,6 @@ def _augment_zones_dataframe(
     pricer: LmpPricer,
     generators: DataFrame[GeneratorsOutput],
 ) -> DataFrame:
-
     # Sum dispatched output over each zone's generators:
     zones_generation_temporary: Series[PowerMW] = generators.groupby(
         GeneratorsOutput.zone
@@ -244,7 +239,6 @@ def _augment_zones_dataframe(
 
 
 class LmpDashboard(pm.Parameterized):
-
     pricer = pm.ClassSelector(class_=LmpPricer, allow_refs=True, instantiate=False)
 
     generators = pm.DataFrame()
@@ -311,14 +305,12 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def lines_panel(self) -> pn.viewable.Viewable:
-
         def make_network_plot(
             dataframe_lines: DataFrame,
             dataframe_nodes: DataFrame,
             color_field_lines: str,
             color_field_nodes: str,
         ) -> alt.Chart:
-
             circle_radius: float = 20.0
 
             # Default font size is 11
@@ -523,7 +515,6 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def offers_panel(self) -> pn.viewable.Viewable:
-
         offers: DataFrame[OffersOutput] = self.offers.set_index(OFFERS_INDEX_LABELS)
         zones: DataFrame[ZonesOutput] = self.zones.set_index(Zones.name)
 
@@ -654,7 +645,6 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def __panel__(self) -> pn.viewable.Viewable:
-
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(

@@ -12,19 +12,14 @@ from mini_iso.dataframes import (
     ZonesPrice,
 )
 from mini_iso.panel_helpers import (
-    admittance_siemens,
-    boolean_check,
-    fraction_percentage,
     money_dollars,
     power_megawatts,
-    real_unspecified,
     tabulator_item,
 )
 from mini_iso.pricer import LmpPricer
 
 
 class Auction(pn.viewable.Viewer):
-
     pricer = pm.ClassSelector(class_=LmpPricer, instantiate=False, label="LMP Pricer")
     offers_pending = pm.DataFrame(label="Pending Offers")
 
@@ -62,7 +57,6 @@ class Auction(pn.viewable.Viewer):
         self.offers_pending = self.pricer.offers.copy()
 
     def __panel__(self) -> pn.viewable.Viewable:
-
         assert all(self.lines_flow == self.pricer.lines_flow)
         assert all(self.offers_committed == self.pricer.offers)
         assert all(self.offers_dispatched == self.pricer.offers_dispatched)
@@ -146,7 +140,6 @@ class Auction(pn.viewable.Viewer):
 
 
 class Bidder(pn.viewable.Viewer):
-
     auction = pm.ClassSelector(class_=Auction, instantiate=False, label="Auction")
     generator_name = pm.Selector(label="Generator")
     offers_drafted = pm.DataFrame(label="Draft Offers")

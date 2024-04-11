@@ -142,13 +142,11 @@ class Zones(DataFrameModel):
 
 
 class LinesFlow(DataFrameModel):
-
     name: Index[LineId] = Field(check_name=True, coerce=True)
     quantity: Series[PowerMW] = _float_field()
 
 
 class OffersDispatched(DataFrameModel):
-
     class Config(model_config.BaseConfig):
         multiindex_name = "offer"
         multiindex_strict = True
