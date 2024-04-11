@@ -70,7 +70,7 @@ class Solution:
 
 def clear_auction(
     inputs: Input,
-    base_power: PowerMW = 1000,  # big_m: float = 10000,
+    base_power: PowerMW = 1000,
 ) -> tuple[Status, Solution | None]:
     # Allow index levels and columns to be referenced uniformly
     generators_df = inputs.generators.reset_index()
