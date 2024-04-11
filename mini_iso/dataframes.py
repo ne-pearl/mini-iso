@@ -68,6 +68,7 @@ class Generators(DataFrameModel):
     name: Index[GeneratorId] = Field(check_name=True, unique=True)
     capacity: Series[PowerMW] = _float_field()
     zone: Series[ZoneId]
+    cost: Series[MoneyUSDPerMW] = _float_field()
     is_included: Optional[Series[bool]] = Field(default=True)
 
     @classmethod

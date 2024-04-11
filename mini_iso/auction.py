@@ -4,7 +4,13 @@ from numpy.typing import NDArray
 from pandera.typing import Series
 import panel as pn
 import param as pm
-from mini_iso.dataframes import Offers, LinesFlow, OffersDispatched, ZonesPrice
+from mini_iso.dataframes import (
+    Generators,
+    Offers,
+    LinesFlow,
+    OffersDispatched,
+    ZonesPrice,
+)
 from mini_iso.panel_helpers import (
     admittance_siemens,
     boolean_check,
@@ -201,12 +207,27 @@ class Bidder(pn.viewable.Viewer):
 
     def __panel__(self) -> pn.viewable.Viewable:
         # FIXME: Breaks encapsulation
+
         return pn.template.VanillaTemplate(
             main=[
                 pn.Column(
                     pn.widgets.Select.from_param(
                         self.param.generator_name,
                         name="Generator",
+                    ),
+                    pn.widgets.StaticText(
+                        name="Zone",
+                        value=self.auction.pricer.generators.at[
+                            self.generator_name,
+                            Generators.zone,
+                        ],
+                    ),
+                    pn.widgets.StaticText(
+                        name="Marginal Cost",
+                        value=self.auction.pricer.generators.at[
+                            self.generator_name,
+                            Generators.cost,
+                        ],
                     ),
                     pn.Row(
                         pn.Column(
