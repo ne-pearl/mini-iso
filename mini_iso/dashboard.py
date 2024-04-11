@@ -553,8 +553,8 @@ class LmpDashboard(pm.Parameterized):
                     (
                         "By Zone",
                         pn.Row(
-                            labeled(pn.pane.Vega(offer_stacks_chart_zonal), name="Actual"),
-                            labeled(pn.pane.Vega(offer_stacks_chart_ideal), name="Isolated"),
+                            labeled(pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"),
+                            labeled(pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"),
                         )
                     ),
                     (
@@ -644,7 +644,7 @@ class LmpDashboard(pm.Parameterized):
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(
-                    labeled(self.pricer.inputs_panel(), name="Inputs"),
+                    labeled(self.pricer.inputs_panel(), label="Inputs"),
                     labeled(
                         pn.Tabs(
                             ("Lines", self.lines_panel()),
@@ -652,7 +652,7 @@ class LmpDashboard(pm.Parameterized):
                             ("Offers", self.offers_panel()),
                             ("Zones", self.zones_panel()),
                         ),
-                        name="Outputs"
+                        label="Outputs"
                     ),
                 )
             ],
