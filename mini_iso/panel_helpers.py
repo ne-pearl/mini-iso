@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import re
-from typing import Literal
+from typing import Final, Literal
 from bokeh.models.widgets.tables import (
     CellFormatter,
     NumberFormatter,
@@ -11,6 +11,9 @@ import pandas as pd
 import panel as pn
 import param as pm
 from panel.widgets import Tabulator
+
+# Tolerance for detection of binding constraints
+BIND_TOL: Final[float] = 1.0 / 100.0
 
 
 def digits_key(text: str) -> float:

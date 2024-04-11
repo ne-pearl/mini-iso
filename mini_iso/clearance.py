@@ -2,7 +2,6 @@ import enum
 from dataclasses import dataclass
 import math
 import sys
-from typing import Final
 import gurobipy as grb
 import pandas as pd
 from pandera.typing import DataFrame, Series
@@ -33,10 +32,6 @@ class Status(enum.Enum):
     OPTIMAL = "optimal solution"
     UNBOUNDED = "unbounded solution"
     UNKNOWN = "uknown or unsupported"
-
-
-# Tolerance for detection of binding constraints
-BIND_TOL: Final[float] = 1.0 / 100.0
 
 
 @dataclass(frozen=True, slots=True)

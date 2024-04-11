@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 import pandas as pd
 from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Series
-from mini_iso.clearance import BIND_TOL
+from mini_iso.panel_helpers import BIND_TOL
 from mini_iso.dataframes import (
     OFFERS_INDEX_LABELS,
     Fraction,

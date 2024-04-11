@@ -28,8 +28,8 @@ from mini_iso.dataframes import (
     ZonesPrice,
     ZonesOutput,
 )
-from mini_iso.clearance import BIND_TOL
 from mini_iso.panel_helpers import (
+    BIND_TOL,
     admittance_siemens,
     boolean_check,
     fraction_percentage,
