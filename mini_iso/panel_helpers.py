@@ -55,13 +55,13 @@ def filter_columns(tabulator: Tabulator, columns: list[str]) -> Tabulator:
     return tabulator
 
 
-def labeled(tabulator: Tabulator, name: str | None = None, level: int = 3) -> pn.Column:
+def labeled(viewable: pn.viewable.Viewable, name: str | None = None, level: int = 2) -> pn.Column:
     assert level - 1 in range(6)
-    name_: str | None = name or tabulator.name
+    name_: str | None = name or getattr(viewable, "name", getattr(viewable, "label"))
     assert name_ is not None
     return pn.Column(
         pn.pane.Markdown(f"{'#' * level} {name}"),
-        tabulator,
+        viewable,
     )
 
 
