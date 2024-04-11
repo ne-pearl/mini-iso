@@ -249,7 +249,7 @@ class Bidder(pn.viewable.Viewer):
                             ),
                         ),
                         pn.Card(
-                            pn.Column(
+                            pn.Row(
                                 pn.Card(
                                     pn.widgets.Tabulator.from_param(
                                         self.param.offers_committed,
