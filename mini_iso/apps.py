@@ -4,7 +4,7 @@ import sys
 import typing
 import panel as pn
 from mini_iso.dashboard import LmpPricer, LmpDashboard
-from mini_iso.dataframes import Input
+from mini_iso.typing import Input
 from mini_iso.datasets.mini_new_england import load_system
 from mini_iso.auction import Auction, Bidder
 

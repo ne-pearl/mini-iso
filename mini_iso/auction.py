@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from pandera.typing import Series
 import panel as pn
 import param as pm
-from mini_iso.dataframes import (
+from mini_iso.typing import (
     Generators,
     Offers,
     LinesFlow,

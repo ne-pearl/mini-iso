@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Index, Series
-from mini_iso.dataframes import (
+from mini_iso.typing import (
     Offers,
     OffersOutput,
     PowerMW,

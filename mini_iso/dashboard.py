@@ -9,7 +9,7 @@ from mini_iso.demo_stacks import Clearance
 from mini_iso.offer_stacks_ideal import OfferStack
 from mini_iso.panel_helpers import labeled
 from mini_iso.pricer import LmpPricer
-from mini_iso.dataframes import (
+from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
     Fraction,
     GeneratorId,
