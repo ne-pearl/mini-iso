@@ -61,6 +61,7 @@ def make_bar_chart(
         )
     )
 
+
 def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
 
     offer_stacks: dict[ZoneId, Clearance] = Clearance.make_stacks(
@@ -88,6 +89,7 @@ def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
             for zone, zone_stack in offer_stacks.items()
         )
     ).interactive()
+
 
 def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame:
 
@@ -364,6 +366,11 @@ class LmpDashboard(pm.Parameterized):
                     size=alt.value(10),
                 )
             )
+
+            format_strings = {
+                LinesOutput.utilization: ".0%",
+            }
+
             line_labels_plot = line_midpoints_plot.mark_text(
                 align="center",
                 baseline="middle",
@@ -372,7 +379,10 @@ class LmpDashboard(pm.Parameterized):
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
-                text=alt.Text(color_field_lines, format=".0f"),
+                text=alt.Text(
+                    color_field_lines,
+                    format=format_strings.get(color_field_lines, ".0f"),
+                ),
             )
 
             nodes_plot = (
@@ -553,9 +563,13 @@ class LmpDashboard(pm.Parameterized):
                     (
                         "By Zone",
                         pn.Row(
-                            labeled(pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"),
-                            labeled(pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"),
-                        )
+                            labeled(
+                                pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"
+                            ),
+                            labeled(
+                                pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"
+                            ),
+                        ),
                     ),
                     (
                         "Ideal Aggregate",
@@ -652,7 +666,7 @@ class LmpDashboard(pm.Parameterized):
                             ("Offers", self.offers_panel()),
                             ("Zones", self.zones_panel()),
                         ),
-                        label="Outputs"
+                        label="Outputs",
                     ),
                 )
             ],
