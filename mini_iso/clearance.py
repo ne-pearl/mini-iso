@@ -72,6 +72,8 @@ def clear_auction(
     inputs: Input,
     base_power: PowerMW = 1000,
 ) -> tuple[Status, Solution | None]:
+    """Solves linear pricing problem for real-time market."""
+
     # Allow index levels and columns to be referenced uniformly
     generators_df = inputs.generators.reset_index()
     offers_df = inputs.offers.reset_index()
@@ -182,9 +184,7 @@ def clear_auction(
 
     # Objective function
     model.setObjective(
-        sum_(tranche_cost[g, t] * p[g, t] for g, t in tranche_cost.keys())
-        # + sum_(big_m * alpha[z] for z in Z)
-        ,
+        sum_(tranche_cost[g, t] * p[g, t] for g, t in tranche_cost.keys()),
         grb.GRB.MINIMIZE,
     )
 
@@ -194,7 +194,6 @@ def clear_auction(
             sum_(p[g, t] for g in Gz[z] for t in Tg[g])
             + sum_(w[le] for le in Le.get(z, []))
             - sum_(w[lo] for lo in Lo.get(z, []))
-            # + alpha[z]
             == zone_load[z]
             for z in Z
         ),
