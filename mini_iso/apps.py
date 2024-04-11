@@ -42,7 +42,9 @@ def load_auction(constrained: bool) -> Auction:
 
 auction: Auction = load_auction(constrained=True)
 
-
+# WARNING: The "Bidder_=Bidder" appears to be necessary in production.
+# Without it, the code crashes inside somewhere in a JavaScript framework,
+# complaining of a missing definition for class Bidder.
 def new_bidding_session(auction=auction, Bidder_=Bidder):
     return Bidder_(auction)
 
