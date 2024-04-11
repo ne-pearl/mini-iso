@@ -171,25 +171,6 @@ class LmpPricer(pn.viewable.Viewer):
     def inputs_panel(self) -> pn.Column:
         return pn.Tabs(
             tabulator_item(
-                self.param.offers,
-                disabled=False,
-                formatters={
-                    Offers.quantity: power_megawatts.formatter,
-                    Offers.price: money_dollars.formatter,
-                },
-                show_columns=[
-                    Offers.generator,
-                    Offers.tranche,
-                    Offers.price,
-                    Offers.quantity,
-                ],
-                show_index=False,  # NB: after call to reset_index
-                text_align={
-                    Offers.quantity: power_megawatts.align,
-                    Offers.price: money_dollars.align,
-                },
-            ),
-            tabulator_item(
                 self.param.generators,
                 # Locked because capacity doesn't affect pricing directly:
                 # Rather, capacity is conveyed via the offers.
@@ -220,6 +201,25 @@ class LmpPricer(pn.viewable.Viewer):
                 text_align={
                     Lines.capacity: power_megawatts.align,
                     Lines.susceptance: admittance_siemens.align,
+                },
+            ),
+            tabulator_item(
+                self.param.offers,
+                disabled=False,
+                formatters={
+                    Offers.quantity: power_megawatts.formatter,
+                    Offers.price: money_dollars.formatter,
+                },
+                show_columns=[
+                    Offers.generator,
+                    Offers.tranche,
+                    Offers.price,
+                    Offers.quantity,
+                ],
+                show_index=False,  # NB: after call to reset_index
+                text_align={
+                    Offers.quantity: power_megawatts.align,
+                    Offers.price: money_dollars.align,
                 },
             ),
             tabulator_item(
