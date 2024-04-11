@@ -51,10 +51,6 @@ class Auction(pn.viewable.Viewer):
             offers_dispatched=pricer.param.offers_dispatched,
             zones_price=pricer.param.zones_price,
         )
-        # assert self.param.lines_flow is pricer.param.lines_flow
-        # assert self.param.offers_committed is pricer.param.offers
-        # assert self.param.offers_dispatched is pricer.param.offers_dispatched
-        # assert self.param.zones_price is pricer.param.zones_price
 
     @pn.depends("submit", watch=True)
     def _on_submit(self) -> None:
