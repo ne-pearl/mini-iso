@@ -23,6 +23,7 @@ from mini_iso.panel_helpers import (
     money_dollars,
     power_megawatts,
 )
+from mini_iso.panel_helpers import index_digits_key
 
 
 def _validate_inputs(
@@ -142,7 +143,9 @@ class LmpPricer(pn.viewable.Viewer):
         else:
             assert solution is not None
             lines_flow = solution.lines[LinesFlow.quantity]
-            offers_dispatched = solution.offers[OffersDispatched.quantity_dispatched]
+            offers_dispatched = solution.offers[
+                OffersDispatched.quantity_dispatched
+            ].sort_index(key=index_digits_key)
             zones_price = solution.zones[ZonesPrice.price]
 
         self.lines_flow = pd.DataFrame(lines_flow, index=self.lines.index)

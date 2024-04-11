@@ -1,14 +1,28 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import re
 from typing import Literal, TypeAlias
 from bokeh.models.widgets.tables import (
     CellFormatter,
     NumberFormatter,
-    BooleanFormatter,
 )
+import numpy as np
 import panel as pn
 import param as pm
 from panel.widgets import Tabulator
+
+
+def digits_key(text: str) -> float:
+    """A sort key for strings with embedded numbers."""
+    matched: re.Match | None = re.search(r"(\d+)", text)
+    if matched is None:
+        return np.inf  # lowest-priority when sorted
+    return float(matched.group(0))
+
+
+def index_digits_key(index: pd.Index) -> pd.Index:
+    """For sorting dataframe index labels with embedded numbers."""
+    return index.map(digits_key)
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,7 +69,11 @@ def filter_columns(tabulator: Tabulator, columns: list[str]) -> Tabulator:
     return tabulator
 
 
-def labeled(viewable: pn.viewable.Viewable, label: str | None = None, level: int = 2) -> pn.Column:
+def labeled(
+    viewable: pn.viewable.Viewable,
+    label: str | None = None,
+    level: int = 2,
+) -> pn.Column:
     assert level - 1 in range(6)
     name_: str | None = label or getattr(viewable, "name", getattr(viewable, "label"))
     assert name_ is not None

@@ -4,19 +4,7 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 from mini_iso.dataframes import Fraction, Input, Lines, Offers, PowerMW, Zones
-
-
-def digits_key(text: str) -> float:
-    """A sort key for strings with embedded numbers."""
-    matched: re.Match | None = re.search(r"(\d+)", text)
-    if matched is None:
-        return np.inf  # lowest-priority when sorted
-    return float(matched.group(0))
-
-
-def index_digits_key(index: pd.Index) -> pd.Index:
-    """For sorting dataframe index labels with embedded numbers."""
-    return index.map(digits_key)
+from mini_iso.panel_helpers import index_digits_key
 
 
 def clean(df: pd.DataFrame, orient: Literal["tight"] = "tight") -> pd.DataFrame:
