@@ -1,5 +1,4 @@
 import enum
-from dataclasses import dataclass
 import math
 import sys
 import gurobipy as grb
