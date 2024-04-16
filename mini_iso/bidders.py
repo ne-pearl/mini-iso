@@ -39,7 +39,7 @@ class Bidder(pn.viewable.Viewer):
             auction=auction,
             zones_price=auction.param.zones_price,  # direct link
         )
-        names: list[str] = auction.offers_pending[Offers.generator].unique().tolist()
+        names: list[str] = sorted(auction.offers_pending[Offers.generator].unique())
         assert len(names) != 0
         self.param.generator_name.objects = names
         self.generator_name = names[0]
