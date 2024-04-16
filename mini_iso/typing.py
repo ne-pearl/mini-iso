@@ -301,17 +301,3 @@ class ZonesOutput(ZonesSolution):
     utilization: Series[PowerMW] = Field(coerce=True)
     x: Series[SpatialCoordinate] = Field(coerce=True)
     y: Series[SpatialCoordinate] = Field(coerce=True)
-
-
-def get_mask(dataframe: DataFrame, key: str, level: int | str = 0) -> NDArray[np.bool_]:
-    return dataframe.index.get_level_values(level=level) == key
-
-
-def get_indices(dataframe: DataFrame, **kwargs) -> list[int]:
-    indices: NDArray[np.int64] = get_mask(dataframe, **kwargs).nonzero()[0]
-    # panel.widgets.Tabulator.selection requires an actual list
-    return indices.tolist()
-
-
-def get_rows(dataframe: DataFrame, **kwargs) -> DataFrame:
-    return dataframe.iloc[get_mask(dataframe, **kwargs)]
