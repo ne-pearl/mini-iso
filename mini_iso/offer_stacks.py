@@ -196,7 +196,7 @@ class Clearance:
             generator: GeneratorId = row[Offers.generator]
             quantity: PowerMW = row[Offers.quantity]
             dispatched: PowerMW = row[OffersDispatched.quantity_dispatched]
-            utilization: Fraction = dispatched / quantity
+            utilization: Fraction = dispatched / quantity if quantity != 0.0 else 0.0
             # fmt: off
             description: str = (
                 Utilization.IMPORTED if generator == INFLOW_NAME else
