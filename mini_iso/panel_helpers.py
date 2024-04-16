@@ -7,6 +7,7 @@ from bokeh.models.widgets.tables import (
     NumberFormatter,
 )
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 import panel as pn
 import param as pm
@@ -111,3 +112,10 @@ def tabulator_item(
     tabulator.hidden_columns = list(set(all_columns).difference(show_columns))
 
     return name_, tabulator
+
+
+def get_series(dataframe: pd.DataFrame, name: str) -> pd.Series:
+    if name in dataframe.index.names:
+        data: NDArray = dataframe.index.get_level_values(level=name)
+        return pd.Series(data=data, index=dataframe.index)
+    return dataframe[name]

@@ -30,8 +30,8 @@ def load_system(constrained: bool = False) -> Input:
     """
 
     # Ensures that, e.g., "Generator_10" comes after "Generator_2"
-    raw.generators.sort_index(key=index_digits_key, inplace=True)
-    raw.offers.sort_index(key=index_digits_key, inplace=True, level=Offers.generator)
+    raw.generators.sort_index(inplace=True)
+    raw.offers.sort_index(inplace=True)
 
     return Input(
         generators=clean(raw.generators),

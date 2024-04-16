@@ -207,20 +207,24 @@ def clear_auction(
     assert status is Status.OPTIMAL
 
     price = pd.Series(
-        {z: constr.getAttr("Pi") for z, constr in power_flow_constraints.items()}
+        {z: constr.getAttr("Pi") for z, constr in power_flow_constraints.items()},
+        name=ZonesSolution.price,
     )
     price.index.name = Zones.name
 
-    line_power: Series[PowerMW] = pd.Series({l_: w[l_].x for l_ in L})
+    line_power: Series[PowerMW] = pd.Series(
+        data={l_: w[l_].x for l_ in L},
+        name=LinesSolution.quantity,
+    )
     line_power.index.name = Lines.name
 
     # Dispatched output for each generator over its tranches
     dispatched = pd.DataFrame.from_records(
         [
             {
-                Offers.generator: g,
-                Offers.tranche: t,
-                Offers.quantity: pgt.x,
+                OffersSolution.generator: g,
+                OffersSolution.tranche: t,
+                OffersSolution.quantity_dispatched: pgt.x,
             }
             for (g, t), pgt in p.items()
         ],
@@ -228,24 +232,21 @@ def clear_auction(
 
     # Sanity check
     total_load: PowerMW = inputs.zones[ZonesOutput.load].sum()
-    total_generation: PowerMW = dispatched[Offers.quantity].sum()
+    total_generation: PowerMW = dispatched[OffersSolution.quantity_dispatched].sum()
     mismatch: PowerMW = total_generation - total_load
     assert abs(mismatch) / total_load < 1e-6
 
+    def align(left: DataFrame, right: DataFrame) -> DataFrame:
+        merged = left[[]].merge(right, how="left", left_index=True, right_index=True)
+        assert all(left.index.values == merged.index.values)
+        return merged[right.columns]
+
+    lines_solution = align(inputs.lines, line_power.to_frame())
+    zones_solution = align(inputs.zones, price.to_frame())
+    offers_solution = align(inputs.offers, dispatched)
+
     return status, Solution(
-        lines=DataFrame[LinesSolution](
-            {
-                LinesSolution.quantity: line_power,
-            }
-        ),
-        zones=DataFrame[ZonesSolution](
-            {
-                ZonesSolution.price: price,
-            }
-        ),
-        offers=DataFrame[OffersSolution](
-            {
-                OffersSolution.quantity_dispatched: dispatched[Offers.quantity],
-            }
-        ),
+        lines=DataFrame[LinesSolution](lines_solution),
+        zones=DataFrame[ZonesSolution](zones_solution),
+        offers=DataFrame[OffersSolution](offers_solution),
     )

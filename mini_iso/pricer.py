@@ -142,7 +142,7 @@ class LmpPricer(pn.viewable.Viewer):
             lines_flow = solution.lines[LinesFlow.quantity]
             offers_dispatched = solution.offers[
                 OffersDispatched.quantity_dispatched
-            ].sort_index(key=index_digits_key)
+            ]
             zones_price = solution.zones[ZonesPrice.price]
 
         self.lines_flow = pd.DataFrame(lines_flow, index=self.lines.index)
