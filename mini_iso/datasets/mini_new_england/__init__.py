@@ -12,6 +12,7 @@ def clean(df: pd.DataFrame, orient: Literal["tight"] = "tight") -> pd.DataFrame:
 def load_system(constrained: bool = False) -> Input:
     raw = Input.from_json(pathlib.Path(__file__).parent / "mini_new_england.json")
 
+    """
     DEMAND_FRACTION: Fraction
     MAX_FLOW: PowerMW
 
@@ -26,6 +27,7 @@ def load_system(constrained: bool = False) -> Input:
     fmax: PowerMW = MAX_FLOW
     raw.lines[Lines.capacity] = +fmax
     raw.zones[Zones.load] *= DEMAND_FRACTION
+    """
 
     # Ensures that, e.g., "Generator_10" comes after "Generator_2"
     raw.generators.sort_index(key=index_digits_key, inplace=True)
