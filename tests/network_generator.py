@@ -1,21 +1,15 @@
 import collections
 import dataclasses
-import itertools
 import numbers
-import random
-import string
-from typing import Generic, Iterable, Iterator, Final, Sequence, TypeVar
+from typing import Iterator, Final, Sequence, TypeVar
 import warnings
 from hypothesis.errors import NonInteractiveExampleWarning
 from hypothesis.extra import pandas as hppd
 from hypothesis import strategies as hpst
-from matplotlib import pyplot as plt
 import networkx as nx
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
 from pandera.typing import DataFrame
-from scipy import optimize as scopt
 from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
     Fraction,
@@ -25,12 +19,9 @@ from mini_iso.typing import (
     LineId,
     Lines,
     MoneyUSDPerMW,
-    OfferId,
     Offers,
     PowerMW,
-    SpatialCoordinate,
     Susceptance,
-    TrancheId,
     ZoneId,
     Zones,
 )
@@ -66,12 +57,6 @@ OFFERS_NUM_PER_GENERATOR: Final = ClosedRange[int](1, 4)
 
 ZONES_NUM: Final = ClosedRange[int](1, 10)
 ZONES_LOAD_MW: Final = ClosedRange[PowerMW](0.5e3, 1e5)
-
-cotree_density: Final[float] = 0.2
-min_generators_per_node: Final[int] = 0
-max_generators_per_node: Final[int] = 3
-num_generators: Final[int] = 8
-num_nodes: Final[int] = 6
 
 FINITE: Final[dict[str, bool]] = dict(
     allow_infinity=False,
@@ -124,7 +109,6 @@ def generators_dataframe(
 ) -> DataFrame[Generators]:
     """Dataframe of generator parameters."""
     assert ZoneId is str
-    num_zones: int = len(zones)
     num_generators: int = draw(size)
     index = pd.Index(
         data=indexed_names(prefix="G", size=num_generators),
@@ -254,13 +238,7 @@ def offers_dataframe(
     capacities: Sequence[PowerMW],
     num_offers_per_generator=default_offers_num_per_generator,
 ):
-    """
-    Offers:
-    - generator
-    - tranche
-    - quantity
-    - price
-    """
+    """Offer data."""
 
     num_generators = len(names)
     assert len(costs) == num_generators
@@ -342,6 +320,7 @@ def networks(
     lines_susceptances=default_lines_susceptances,
     # Offer parameters
     offers_num_per_generator=default_offers_num_per_generator,
+    offers_safety_factor: float = 10.0,
     # Zone parameters
     zones_size=default_zones_size,
     zones_loads=default_zones_loads,
@@ -381,27 +360,8 @@ def networks(
         )
     )
 
-    # graph_generators: nx.Graph = nx.from_edgelist(
-    #     [node_id, f"N{node_id}G{generator_id}"]
-    #     for node_id in range(num_nodes)
-    #     for generator_id in range(num_generators_per_node[node_id])
-    # )
-    # cotree_edge_sample: list[tuple[int, int]] = rng.sample(
-    #     list(graph_cotree.edges()),
-    #     k=num_edges,
-    # )
-    # graph_cotree_subgraph: nx.Graph = nx.from_edgelist(cotree_edge_sample)
-    # graph_sampled: nx.Graph = nx.compose(graph_tree, graph_cotree_subgraph)
-    # graph_sampled_with_generators: nx.Graph = nx.compose(graph_tree, graph_generators)
-    # node_positions: dict[int, NDArray[np.double]] = nx.spring_layout(
-    #     graph_sampled_with_generators,
-    #     iterations=200,
-    #     threshold=1e-6,
-    # )
-    # nx.draw(graph_sampled, pos=node_positions, with_labels=True)
-    # nx.draw(graph_generators, edge_color="green", pos=node_positions, with_labels=True)
-    # nx.draw(graph_tree, edge_color="red", pos=node_positions)
-    # plt.show()
+    ratio = zones[Zones.load].sum() / offers[Offers.quantity].sum()
+    offers[Offers.quantity] *= ratio * offers_safety_factor
 
     return Input(
         generators=generators,
@@ -412,14 +372,21 @@ def networks(
 
 
 if __name__ == "__main__":
+    from mini_iso.clearance import Solution, clear_auction
+
     warnings.simplefilter(action="ignore", category=FutureWarning)
     warnings.simplefilter(action="ignore", category=NonInteractiveExampleWarning)
-    network = networks(
+    inputs: Input = networks(
         generators_size=hpst.just(8),
         lines_cotree_density=hpst.just(0.8),
         zones_size=hpst.just(4),
     ).example()
-    print(network.generators)
-    print(network.offers)
-    print(network.lines)
-    print(network.zones)
+    print(inputs.generators)
+    print(inputs.offers)
+    print(inputs.lines)
+    print(inputs.zones)
+
+    print(f"capacity: {inputs.offers[Offers.quantity].sum():.1f} MW")
+    print(f"    load: {inputs.zones[Zones.load].sum():.1f} MW")
+
+    solution: Solution = clear_auction(inputs)
