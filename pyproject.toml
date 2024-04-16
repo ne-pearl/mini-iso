@@ -15,6 +15,10 @@ pandera = "^0.18.3"
 panel = "^1.4.1"
 hypothesis = "^6.100.1"
 pytest = "^8.1.1"
+networkx = "^3.3"
+matplotlib = "^3.8.4"
+scipy = "^1.13.0"
+dask = {extras = ["dataframe"], version = "^2024.4.1"}
 
 
 [build-system]
