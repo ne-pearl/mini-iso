@@ -338,6 +338,7 @@ class LmpDashboard(pm.Parameterized):
                         alt.Tooltip(LinesOutput.slack, format=".2f"),
                         alt.Tooltip(LinesOutput.utilization, format=".0%"),
                         alt.Tooltip(LinesOutput.is_critical),
+                        alt.Tooltip(LinesOutput.quantity, format=".0f"),
                         alt.Tooltip(LinesOutput.abs_flow, format=".0f"),
                         alt.Tooltip(LinesOutput.capacity, format=".0f"),
                     ],
@@ -387,8 +388,10 @@ class LmpDashboard(pm.Parameterized):
                     tooltip=[
                         ZonesOutput.name,
                         alt.Tooltip(ZonesOutput.price, format="$.2f"),
+                        alt.Tooltip(ZonesOutput.load, format=".0f"),
                         alt.Tooltip(ZonesOutput.capacity, format=".0f"),
                         alt.Tooltip(ZonesOutput.dispatched, format=".0f"),
+                        alt.Tooltip(ZonesOutput.utilization, format=".0%"),
                     ],
                 )
             )
@@ -434,11 +437,12 @@ class LmpDashboard(pm.Parameterized):
 
         lines_select = pn.widgets.Select(
             options=[
-                LinesOutput.slack,
-                LinesOutput.utilization,
-                LinesOutput.is_critical,
+                LinesOutput.quantity,
                 LinesOutput.abs_flow,
                 LinesOutput.capacity,
+                LinesOutput.utilization,
+                LinesOutput.is_critical,
+                LinesOutput.slack,
             ],
             name="Lines",
         )
