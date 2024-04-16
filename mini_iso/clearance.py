@@ -18,6 +18,7 @@ from mini_iso.typing import (
     Offers,
     OffersSolution,
     PowerMW,
+    Solution,
     Susceptance,
     TrancheId,
     ZoneId,
@@ -32,14 +33,6 @@ class Status(enum.Enum):
     OPTIMAL = "optimal solution"
     UNBOUNDED = "unbounded solution"
     UNKNOWN = "uknown or unsupported"
-
-
-@dataclass(frozen=True, slots=True)
-class Solution:
-    # generators: DataFrame[GeneratorsSolution]
-    lines: DataFrame[LinesSolution]
-    offers: DataFrame[OffersSolution]
-    zones: DataFrame[ZonesSolution]
 
 
 def clear_auction(

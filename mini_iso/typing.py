@@ -239,6 +239,13 @@ class ZonesSolution(DataFrameModel):
     price: Series[MoneyUSDPerMW] = Field(coerce=True)
 
 
+@dataclasses.dataclass(frozen=True, slots=True)
+class Solution:
+    lines: DataFrame[LinesSolution]
+    offers: DataFrame[OffersSolution]
+    zones: DataFrame[ZonesSolution]
+
+
 class GeneratorsOutput(GeneratorsSolution):
     capacity: Series[PowerMW] = Field(coerce=True)
     zone: Series[ZoneId]

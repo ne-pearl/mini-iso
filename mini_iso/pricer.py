@@ -3,7 +3,7 @@ import pandas as pd
 from pandera.typing import DataFrame
 import panel as pn
 import param as pm
-from mini_iso.clearance import Solution, Status, clear_auction
+from mini_iso.clearance import Status, clear_auction
 from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
     Generators,
@@ -12,6 +12,7 @@ from mini_iso.typing import (
     LinesFlow,
     Offers,
     OffersDispatched,
+    Solution,
     Zones,
     ZonesPrice,
 )
