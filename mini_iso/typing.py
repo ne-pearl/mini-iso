@@ -119,6 +119,20 @@ class Offers(DataFrameModel):
 
 OFFERS_INDEX_LABELS: Final[list[str]] = [Offers.generator, Offers.tranche]
 
+class OffersSummary(DataFrameModel):
+    class Config(model_config.BaseConfig):
+        multiindex_name = "offer"
+        multiindex_strict = True
+        unique_column_names: bool = True
+
+    generator: Index[GeneratorId]
+    tranche: Index[TrancheId]
+    quantity_offered: Series[PowerMW] = _float_field()
+    quantity_dispatched: Series[PowerMW] = _float_field()
+    utilization: Series[Fraction] = _float_field()
+    price_offered: Series[MoneyUSDPerMW] = _float_field()
+    price_lmp: Series[MoneyUSDPerMW] = _float_field()
+    premium: Series[MoneyUSDPerMW] = _float_field()
 
 class Zones(DataFrameModel):
     """Schema for zone data (aggregating bus data)."""
