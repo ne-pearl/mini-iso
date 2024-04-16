@@ -3,8 +3,6 @@ import dataclasses
 import json
 import pathlib
 from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
-import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
 from pandera import DataFrameModel, Field
 from pandera.api.pandas import model_config
