@@ -130,7 +130,7 @@ class OffersSummary(DataFrameModel):
     utilization: Series[Fraction] = _float_field()
     price_offered: Series[MoneyUSDPerMW] = _float_field()
     price_lmp: Series[MoneyUSDPerMW] = _float_field()
-    premium: Series[MoneyUSDPerMW] = _float_field()
+    excess: Series[MoneyUSDPerMW] = _float_field()
 
 class Zones(DataFrameModel):
     """Schema for zone data (aggregating bus data)."""

@@ -96,7 +96,7 @@ class Bidder(pn.viewable.Viewer):
         self.summary[
             [
                 OffersSummary.price_offered,
-                OffersSummary.premium,
+                OffersSummary.excess,
                 OffersSummary.quantity_dispatched,
                 OffersSummary.utilization,
             ]
@@ -119,7 +119,7 @@ class Bidder(pn.viewable.Viewer):
         summary[OffersSummary.price_lmp] = self.zones_price.at[
             self.zone, ZonesPrice.price
         ]
-        summary[OffersSummary.premium] = (
+        summary[OffersSummary.excess] = (
             summary[OffersSummary.price_lmp] - summary[OffersSummary.price_offered]
         )
         summary[OffersSummary.utilization] = (
@@ -136,7 +136,7 @@ class Bidder(pn.viewable.Viewer):
                 OffersSummary.utilization,
                 OffersSummary.price_offered,
                 OffersSummary.price_lmp,
-                OffersSummary.premium,
+                OffersSummary.excess,
             ]
         ]
 
@@ -199,7 +199,7 @@ class Bidder(pn.viewable.Viewer):
                                     formatters={
                                         OffersSummary.price_lmp: money_dollars.formatter,
                                         OffersSummary.price_offered: money_dollars.formatter,
-                                        OffersSummary.premium: money_dollars.formatter,
+                                        OffersSummary.excess: money_dollars.formatter,
                                         OffersSummary.quantity_dispatched: power_megawatts.formatter,
                                         OffersSummary.quantity_offered: power_megawatts.formatter,
                                         OffersSummary.utilization: fraction_percentage.formatter,
@@ -208,7 +208,7 @@ class Bidder(pn.viewable.Viewer):
                                     text_align={
                                         OffersSummary.price_lmp: money_dollars.align,
                                         OffersSummary.price_offered: money_dollars.align,
-                                        OffersSummary.premium: money_dollars.align,
+                                        OffersSummary.excess: money_dollars.align,
                                         OffersSummary.quantity_dispatched: power_megawatts.align,
                                         OffersSummary.quantity_offered: power_megawatts.align,
                                         OffersSummary.utilization: fraction_percentage.align,
