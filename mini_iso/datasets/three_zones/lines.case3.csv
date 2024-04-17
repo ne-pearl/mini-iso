@@ -1,0 +1,4 @@
+name,zone_from,zone_to,susceptance,capacity
+1,Bus1,Bus2,0.25,100
+2,Bus1,Bus3,0.25,80
+3,Bus2,Bus3,0.25,100
