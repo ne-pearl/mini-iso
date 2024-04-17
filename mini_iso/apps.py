@@ -1,7 +1,9 @@
 from __future__ import annotations
+import argparse
 import logging
+from pathlib import Path
 import sys
-import typing
+from typing import Final
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
@@ -9,8 +11,11 @@ from mini_iso.dashboard import LmpPricer, LmpDashboard
 from mini_iso.datasets.mini_new_england import load_system
 from mini_iso.typing import Input
 
-ADDRESS: typing.Final[str] = "*"
-PORT: typing.Final[int] = 5000
+ADDRESS: Final[str] = "*"
+PORT: Final[int] = 5000
+DATASETS_PATH: Final[Path] = Path(__file__).parent / "datasets"
+assert DATASETS_PATH.exists()
+assert DATASETS_PATH.is_dir()
 
 # panel configuration
 pn.extension(
@@ -34,14 +39,19 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 
 @pn.cache
-def load_auction(constrained: bool) -> Auction:
+def load_auction(case_path: Path) -> Auction:
     """This function's body is evaluated exactly once."""
-    inputs: Input = load_system(constrained=constrained)
+    inputs: Input = Input.from_json(DATASETS_PATH / case_path)
     pricer: LmpPricer = LmpPricer.from_inputs(inputs)
     return Auction(pricer)
 
 
-auction: Auction = load_auction(constrained=True)
+parser = argparse.ArgumentParser(description="Mini-ISO applications")
+parser.add_argument("path", type=Path)
+args = parser.parse_args()
+print("args:", vars(args))
+auction: Auction = load_auction(args.path)
+
 
 # WARNING: The "Bidder_=Bidder" appears to be necessary in production.
 # Without it, the code crashes inside somewhere in a JavaScript framework,
@@ -55,7 +65,7 @@ if __name__ != "__main__":
         admin=True,
         panels={
             "iso-auction": auction,
-            # "Back-End": auction.pricer,
+            "back-end": auction.pricer,
             "generator-bidding": new_bidding_session,
             "system-dashboard": LmpDashboard(pricer=auction.pricer),
         },
