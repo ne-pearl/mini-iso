@@ -1,6 +1,6 @@
 {
     "generators": "generators.csv",
-    "lines": "lines.case1.csv",
+    "lines": "lines.case2.csv",
     "offers": "offers.csv",
     "zones": "zones.csv"
 }
