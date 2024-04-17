@@ -262,9 +262,9 @@ class LmpDashboard(pm.Parameterized):
     def generators_panel(self) -> pn.viewable.Viewable:
         field_select = pn.widgets.Select(
             options=[
-                GeneratorsOutput.utilization,
                 GeneratorsOutput.dispatched,
                 GeneratorsOutput.capacity,
+                GeneratorsOutput.utilization,
             ]
         )
         return pn.Tabs(
