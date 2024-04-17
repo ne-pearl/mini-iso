@@ -241,9 +241,9 @@ def clear_auction(
         assert all(left.index.values == merged.index.values)
         return merged[right.columns]
 
-    lines_solution = align(inputs.lines, line_power.to_frame())
-    zones_solution = align(inputs.zones, price.to_frame())
-    offers_solution = align(inputs.offers, dispatched)
+    lines_solution: DataFrame = align(inputs.lines, line_power.to_frame())
+    zones_solution: DataFrame = align(inputs.zones, price.to_frame())
+    offers_solution: DataFrame = align(inputs.offers, dispatched)
 
     return status, Solution(
         lines=DataFrame[LinesSolution](lines_solution),
