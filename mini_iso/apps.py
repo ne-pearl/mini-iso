@@ -66,5 +66,4 @@ if __name__ != "__main__":
 
 else:
     dashboard = LmpDashboard(pricer=auction.pricer)
-    print(dashboard)
     pn.panel(dashboard).servable()
