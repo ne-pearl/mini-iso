@@ -1,6 +1,7 @@
 from __future__ import annotations
 import dataclasses
 import enum
+import itertools
 import json
 import pathlib
 from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
@@ -213,14 +214,26 @@ class Input:
         self._layout_network()
 
     def _layout_network(self) -> None:
+
+        # See `weight` in networkx.spring_layout()
+        # https://networkx.org/documentation/stable/reference/generated/networkx.drawing.layout.spring_layout.html
+        line_weight_key: Final[str] = "weight"
+        line_weight_zone: Final[int] = 1
+        line_weight_generator: Final[int] = line_weight_zone * 10
+
         zones_graph: nx.Graph = nx.from_edgelist(
             zip(
                 ((Part.ZONE, from_) for from_ in self.lines[Lines.zone_from]),
                 ((Part.ZONE, to_) for to_ in self.lines[Lines.zone_to]),
+                itertools.repeat({line_weight_key: line_weight_zone}),
             )
         )
         generators_graph: nx.Graph = nx.from_edgelist(
-            ((Part.GENERATOR, from_), (Part.ZONE, to_))
+            (
+                (Part.GENERATOR, from_),
+                (Part.ZONE, to_),
+                {line_weight_key: line_weight_generator},
+            )
             for from_, to_ in self.generators[Generators.zone].items()
         )
         graph: nx.Graph = nx.compose(zones_graph, generators_graph)
@@ -256,7 +269,14 @@ class Input:
         )
         pos: dict[Node, Pos] = {**generators_pos_fixed, **zones_pos_fixed}
         fixed: dict[Node, bool] = {node: True for node in pos.keys()}
-        layout = nx.spring_layout(graph, pos=pos, fixed=fixed)
+        layout = nx.spring_layout(
+            graph,
+            pos=pos,
+            fixed=fixed,
+            iterations=5000,
+            seed=0,
+            weight=line_weight_key,
+        )
 
         zones_pos: dict[ZoneId, Pos] = {}
         generators_pos: dict[GeneratorId, Pos] = {}
@@ -359,7 +379,7 @@ class LinesOutput(LinesSolution):
     zone_from: Series[ZoneId]
     zone_to: Series[ZoneId]
     susceptance: Series[Susceptance] = Field(coerce=True)
-    abs_flow: Series[PowerMW] = Field(coerce=True)
+    quantity_abs: Series[PowerMW] = Field(coerce=True)
     capacity: Series[PowerMW] = Field(coerce=True)
     slack: Series[PowerMW] = Field(coerce=True)
     utilization: Series[Fraction]

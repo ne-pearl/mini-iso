@@ -154,7 +154,7 @@ def _augment_lines_dataframe(pricer: LmpPricer) -> DataFrame:
             LinesOutput.zone_to: pricer.lines[Lines.zone_to],
             LinesOutput.susceptance: pricer.lines[Lines.susceptance],
             LinesOutput.quantity: lines_flow,
-            LinesOutput.abs_flow: lines_flow_abs,
+            LinesOutput.quantity_abs: lines_flow_abs,
             LinesOutput.capacity: lines_capacity,
             LinesOutput.slack: lines_slack,
             LinesOutput.utilization: lines_utilization,
@@ -372,7 +372,6 @@ class LmpDashboard(pm.Parameterized):
                         alt.Tooltip(LinesOutput.utilization, format=".0%"),
                         alt.Tooltip(LinesOutput.is_critical),
                         alt.Tooltip(LinesOutput.quantity, format=".0f"),
-                        alt.Tooltip(LinesOutput.abs_flow, format=".0f"),
                         alt.Tooltip(LinesOutput.capacity, format=".0f"),
                     ],
                 )
@@ -546,7 +545,7 @@ class LmpDashboard(pm.Parameterized):
         lines_select = pn.widgets.Select(
             options=[
                 LinesOutput.quantity,
-                LinesOutput.abs_flow,
+                LinesOutput.quantity_abs,
                 LinesOutput.capacity,
                 LinesOutput.utilization,
                 LinesOutput.is_critical,
@@ -595,7 +594,7 @@ class LmpDashboard(pm.Parameterized):
                     formatters={
                         LinesOutput.susceptance: admittance_siemens.formatter,
                         LinesOutput.quantity: power_megawatts.formatter,
-                        LinesOutput.abs_flow: power_megawatts.formatter,
+                        LinesOutput.quantity_abs: power_megawatts.formatter,
                         LinesOutput.capacity: power_megawatts.formatter,
                         LinesOutput.slack: power_megawatts.formatter,
                         LinesOutput.utilization: fraction_percentage.formatter,
@@ -611,7 +610,7 @@ class LmpDashboard(pm.Parameterized):
                     text_align={
                         LinesOutput.susceptance: admittance_siemens.align,
                         LinesOutput.quantity: power_megawatts.align,
-                        LinesOutput.abs_flow: power_megawatts.align,
+                        LinesOutput.quantity_abs: power_megawatts.align,
                         LinesOutput.capacity: power_megawatts.align,
                         LinesOutput.slack: power_megawatts.align,
                         LinesOutput.utilization: fraction_percentage.align,
