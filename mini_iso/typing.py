@@ -1,8 +1,11 @@
 from __future__ import annotations
 import dataclasses
+import enum
 import json
 import pathlib
 from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
+import networkx as nx
+import numpy as np
 import pandas as pd
 from pandera import DataFrameModel, Field
 from pandera.api.pandas import model_config
@@ -69,6 +72,9 @@ class Generators(DataFrameModel):
     cost: Series[MoneyUSDPerMW] = _float_field()
     is_included: Optional[Series[bool]] = Field(default=True)
 
+    x: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
+    y: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
+
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> pd.DataFrame:
         return _validate_and_reindex(cls, df, cls.name)
@@ -117,6 +123,7 @@ class Offers(DataFrameModel):
 
 OFFERS_INDEX_LABELS: Final[list[str]] = [Offers.generator, Offers.tranche]
 
+
 class OffersSummary(DataFrameModel):
     class Config(model_config.BaseConfig):
         multiindex_name = "offer"
@@ -132,6 +139,7 @@ class OffersSummary(DataFrameModel):
     price_lmp: Series[MoneyUSDPerMW] = _float_field()
     excess: Series[MoneyUSDPerMW] = _float_field()
 
+
 class Zones(DataFrameModel):
     """Schema for zone data (aggregating bus data)."""
 
@@ -145,8 +153,8 @@ class Zones(DataFrameModel):
 
     # Calculated
     price: Series[MoneyUSDPerMW] = _float_field()
-    x: Series[SpatialCoordinate] = _float_field()
-    y: Series[SpatialCoordinate] = _float_field()
+    x: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
+    y: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> pd.DataFrame:
@@ -174,18 +182,22 @@ class ZonesPrice(DataFrameModel):
     price: Series[MoneyUSDPerMW] = _float_field()
 
 
+class Part(enum.Enum):
+    GENERATOR = Generators.__name__
+    ZONE = Zones.__name__
+
+
+Id: TypeAlias = GeneratorId | ZoneId
+Node: TypeAlias = tuple[Part, Id]
+Pos: TypeAlias = tuple[SpatialCoordinate, SpatialCoordinate]
+
+
 @dataclasses.dataclass(frozen=True, slots=True)
 class Input:
     generators: DataFrame[Generators]
     offers: DataFrame[Offers]
     lines: DataFrame[Lines]
     zones: DataFrame[Zones]
-
-    # # Positive base power
-    # base_power: PowerMW = 1000
-
-    # # Big constant
-    # big_m: float = 10000
 
     def __post_init__(self):
         """Validate inter-table relations."""
@@ -197,6 +209,78 @@ class Input:
 
         generators_id = set(self.generators.index)
         assert generators_id.issuperset(self.offers.index.get_level_values(0))
+
+        self._layout_network()
+
+    def _layout_network(self) -> None:
+        zones_graph: nx.Graph = nx.from_edgelist(
+            zip(
+                ((Part.ZONE, from_) for from_ in self.lines[Lines.zone_from]),
+                ((Part.ZONE, to_) for to_ in self.lines[Lines.zone_to]),
+            )
+        )
+        generators_graph: nx.Graph = nx.from_edgelist(
+            ((Part.GENERATOR, from_), (Part.ZONE, to_))
+            for from_, to_ in self.generators[Generators.zone].items()
+        )
+        graph: nx.Graph = nx.compose(zones_graph, generators_graph)
+
+        print("edges")
+        print(graph.edges())
+
+        def get_pos(
+            df: pd.DataFrame, part: Part, x_column: str, y_column: str
+        ) -> dict[Node, Pos]:
+            """Get positions if available."""
+            return (
+                {
+                    (part, key): xy
+                    for key, x, y in zip(df.index, df[x_column], df[y_column])
+                    if np.nan not in (xy := (x, y))
+                }
+                if set(df.columns).issuperset([x_column, y_column])
+                else {}
+            )
+
+        generators_pos_fixed: dict[Node, Pos] = get_pos(
+            df=self.zones,
+            part=Part.ZONE,
+            x_column=Zones.x,
+            y_column=Zones.y,
+        )
+        zones_pos_fixed: dict[Node, Pos] = get_pos(
+            df=self.generators,
+            part=Part.GENERATOR,
+            x_column=Generators.x,
+            y_column=Generators.y,
+        )
+        pos: dict[Node, Pos] = {**generators_pos_fixed, **zones_pos_fixed}
+        fixed: dict[Node, bool] = {node: True for node in pos.keys()}
+        layout = nx.spring_layout(graph, pos=pos, fixed=fixed)
+
+        zones_pos: dict[ZoneId, Pos] = {}
+        generators_pos: dict[GeneratorId, Pos] = {}
+
+        node: Node
+        pos: Pos
+        for node, pos in layout.items():
+            if not fixed.get(node, False):
+                part: Part
+                index: Id
+                part, index = node
+                reference = generators_pos if part is Part.GENERATOR else zones_pos
+                reference[index] = tuple(pos)
+
+        def merge(
+            self_: pd.DataFrame, updated_pos: dict[Id, Pos], *columns: Id
+        ) -> None:
+            for column in set(columns).difference(self_.columns):
+                # The column must exist before it can be updated
+                self_[column] = None
+            self_.update(other=pd.DataFrame(updated_pos, index=columns).T)
+
+        merge(self.generators, generators_pos, Generators.x, Generators.y)
+        merge(self.zones, zones_pos, Zones.x, Zones.y)
 
     @classmethod
     def from_json(cls, path: pathlib.Path | str, **kwargs) -> Input:
