@@ -31,7 +31,6 @@ T = TypeVar("T")
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class ClosedRange(collections.abc.Mapping[str, T]):
-
     min_value: T
     max_value: T
 
@@ -255,7 +254,6 @@ def offers_dataframe(
     def make_generator_offers(
         name: str, capacity: PowerMW, cost: MoneyUSDPerMW, num_offers: int
     ) -> DataFrame[Offers]:
-
         def normalize(elements: list[numbers.Number]) -> list[float]:
             total: numbers.Number = sum(elements)
             assert total > 0.0
@@ -325,7 +323,6 @@ def networks(
     zones_size=default_zones_size,
     zones_loads=default_zones_loads,
 ) -> Input:
-
     zones: DataFrame[Zones] = draw(
         zones_dataframe(
             size=zones_size,

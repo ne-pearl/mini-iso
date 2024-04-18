@@ -19,6 +19,7 @@ from mini_iso.panel_helpers import (
 )
 from mini_iso.auction import Auction
 
+
 class Bidder(pn.viewable.Viewer):
     auction = pm.ClassSelector(class_=Auction, instantiate=False, label="Auction")
     generator_name = pm.Selector(label="Generator")

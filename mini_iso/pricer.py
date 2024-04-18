@@ -140,9 +140,7 @@ class LmpPricer(pn.viewable.Viewer):
         else:
             assert solution is not None
             lines_flow = solution.lines[LinesFlow.quantity]
-            offers_dispatched = solution.offers[
-                OffersDispatched.quantity_dispatched
-            ]
+            offers_dispatched = solution.offers[OffersDispatched.quantity_dispatched]
             zones_price = solution.zones[ZonesPrice.price]
 
         self.lines_flow = pd.DataFrame(lines_flow, index=self.lines.index)
