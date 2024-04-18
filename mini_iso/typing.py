@@ -347,6 +347,12 @@ class GeneratorsOutput(GeneratorsSolution):
     zone: Series[ZoneId]
     dispatched: Series[PowerMW] = Field(coerce=True)
     utilization: Series[Fraction] = Field(coerce=True)
+    x: Series[SpatialCoordinate] = Field(coerce=True)
+    y: Series[SpatialCoordinate] = Field(coerce=True)
+    x_zone: Series[SpatialCoordinate] = Field(coerce=True)
+    y_zone: Series[SpatialCoordinate] = Field(coerce=True)
+    x_mid: Series[SpatialCoordinate] = Field(coerce=True)
+    y_mid: Series[SpatialCoordinate] = Field(coerce=True)
 
 
 class LinesOutput(LinesSolution):

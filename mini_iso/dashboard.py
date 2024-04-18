@@ -96,6 +96,19 @@ def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataF
     generators_dispatched.index.name = GeneratorsOutput.name
     generators_capacity: Series[PowerMW] = pricer.generators[Generators.capacity]
 
+    x: Series[SpatialCoordinate] = pricer.generators[Generators.x]
+    y: Series[SpatialCoordinate] = pricer.generators[Generators.y]
+
+    zone: Series[ZoneId] = pricer.generators[Generators.zone]
+    x_zone = Series[SpatialCoordinate](
+        data=pricer.zones[Zones.x][zone].values,
+        index=pricer.generators.index,
+    )
+    y_zone = Series[SpatialCoordinate](
+        data=pricer.zones[Zones.y][zone].values,
+        index=pricer.generators.index,
+    )
+
     assert pricer.generators.index.name == GeneratorsOutput.name
     return DataFrame[GeneratorsOutput](
         {
@@ -105,6 +118,12 @@ def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataF
             GeneratorsOutput.utilization: (
                 generators_dispatched / generators_capacity
             ).fillna(0.0),
+            GeneratorsOutput.x: x,
+            GeneratorsOutput.y: y,
+            GeneratorsOutput.x_zone: x_zone,
+            GeneratorsOutput.y_zone: y_zone,
+            GeneratorsOutput.x_mid: (x + x_zone) * 0.5,
+            GeneratorsOutput.y_mid: (y + y_zone) * 0.5,
         },
         index=pricer.generators.index,
     ).reset_index()
@@ -302,22 +321,34 @@ class LmpDashboard(pm.Parameterized):
             ),
         )
 
-    def lines_panel(self) -> pn.viewable.Viewable:
+    def network_panel(self) -> pn.viewable.Viewable:
+
         def make_network_plot(
+            dataframe_generators: DataFrame,
             dataframe_lines: DataFrame,
-            dataframe_nodes: DataFrame,
+            dataframe_zones: DataFrame,
+            color_field_generators: str,
             color_field_lines: str,
-            color_field_nodes: str,
+            color_field_zones: str,
         ) -> alt.Chart:
-            circle_radius: float = 20.0
+
+            circle_radius: Final[float] = 20.0
+            format_strings: Final[dict[str, str]] = {
+                GeneratorsOutput.utilization: ".0%",
+                LinesOutput.utilization: ".0%",
+                ZonesOutput.utilization: ".0%",
+            }
 
             # Default font size is 11
             # https://altair-viz.github.io/user_guide/marks/text.html
-            font_size = alt.value(11)
+            font_size: Final[dict] = alt.value(11)
 
-            lines_plot = (
-                alt.Chart(dataframe_lines)
-                .mark_rule(color="black")
+            generators_chart = alt.Chart(dataframe_generators)
+            lines_chart = alt.Chart(dataframe_lines)
+            zones_chart = alt.Chart(dataframe_zones)
+
+            zones_line_plot = (
+                lines_chart.mark_rule(color="black")
                 .encode(
                     x=alt.X(
                         LinesOutput.x_from,
@@ -347,22 +378,14 @@ class LmpDashboard(pm.Parameterized):
                 # .properties(height=400)
             )
 
-            line_midpoints_plot = (
-                alt.Chart(dataframe_lines)
-                .mark_point()
-                .encode(
-                    x=alt.X(LinesOutput.x_mid),
-                    y=alt.Y(LinesOutput.y_mid),
-                    color=alt.Color(color_field_lines, legend=None),
-                    size=alt.value(10),
-                )
+            zones_line_midpoint_plot = lines_chart.mark_point().encode(
+                x=alt.X(LinesOutput.x_mid),
+                y=alt.Y(LinesOutput.y_mid),
+                color=alt.Color(color_field_lines, legend=None),
+                size=alt.value(10),
             )
 
-            format_strings = {
-                LinesOutput.utilization: ".0%",
-            }
-
-            line_labels_plot = line_midpoints_plot.mark_text(
+            zones_line_label_plot = zones_line_midpoint_plot.mark_text(
                 align="center",
                 baseline="middle",
                 dx=10,
@@ -376,14 +399,13 @@ class LmpDashboard(pm.Parameterized):
                 ),
             )
 
-            nodes_plot = (
-                alt.Chart(dataframe_nodes)
-                .mark_circle()
+            zones_plot = (
+                zones_chart.mark_square()
                 .project(type="identity", reflectY=True)
                 .encode(
                     x=alt.X(ZonesOutput.x, type="quantitative"),
                     y=alt.Y(ZonesOutput.y, type="quantitative"),
-                    color=alt.Color(color_field_nodes, legend=None),
+                    color=alt.Color(color_field_zones, legend=None),
                     size=alt.value(np.pi * circle_radius**2),  # actually area?
                     tooltip=[
                         ZonesOutput.name,
@@ -395,7 +417,8 @@ class LmpDashboard(pm.Parameterized):
                     ],
                 )
             )
-            node_names_plot = nodes_plot.mark_text(
+
+            zones_name_plot = zones_plot.mark_text(
                 align="center",
                 baseline="middle",
                 dx=0,
@@ -406,25 +429,95 @@ class LmpDashboard(pm.Parameterized):
                 text=alt.Text(ZonesOutput.name),
             )
 
-            # node_labels_plot = nodes_plot.mark_text(
-            #     align="center",
-            #     baseline="middle",
-            #     dx=0,
-            #     dy=-10,
-            # ).encode(
-            #     color=alt.value("black"),
-            #     size=font_size,
-            #     text=alt.Text(color_field_nodes),
-            # )
+            generators_line_plot = (
+                generators_chart.mark_rule(color="black")
+                .encode(
+                    x=alt.X(
+                        GeneratorsOutput.x,
+                        axis=alt.Axis(title="x"),
+                        type="quantitative",
+                    ),
+                    y=alt.Y(
+                        GeneratorsOutput.y,
+                        axis=alt.Axis(title="y"),
+                        type="quantitative",
+                    ),
+                    x2=alt.X2(GeneratorsOutput.x_zone),
+                    y2=alt.Y2(GeneratorsOutput.y_zone),
+                    color=alt.Color(color_field_generators, legend=None),
+                    size=alt.value(5),
+                    tooltip=[
+                        alt.Tooltip(GeneratorsOutput.name),
+                        alt.Tooltip(GeneratorsOutput.dispatched, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.capacity, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.utilization, format=".0%"),
+                    ],
+                )
+                .project(type="identity", reflectY=True)
+                # .properties(height=400)
+            )
+
+            generators_line_midpoint_plot = generators_chart.mark_point().encode(
+                x=alt.X(GeneratorsOutput.x_mid),
+                y=alt.Y(GeneratorsOutput.y_mid),
+                color=alt.Color(color_field_generators, legend=None),
+                size=alt.value(10),
+            )
+
+            generators_line_label_plot = generators_line_midpoint_plot.mark_text(
+                align="center",
+                baseline="middle",
+                dx=10,
+                dy=10,
+            ).encode(
+                color=alt.value("black"),
+                size=font_size,
+                text=alt.Text(
+                    color_field_generators,
+                    format=format_strings.get(color_field_generators, ".0f"),
+                ),
+            )
+
+            generators_plot = (
+                generators_chart.mark_circle()
+                .project(type="identity", reflectY=True)
+                .encode(
+                    x=alt.X(GeneratorsOutput.x, type="quantitative"),
+                    y=alt.Y(GeneratorsOutput.y, type="quantitative"),
+                    color=alt.Color(color_field_generators, legend=None),
+                    size=alt.value(np.pi * circle_radius**2),  # actually area?
+                    tooltip=[
+                        GeneratorsOutput.name,
+                        alt.Tooltip(GeneratorsOutput.capacity, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.dispatched, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.utilization, format=".0%"),
+                    ],
+                )
+            )
+
+            generators_name_plot = generators_plot.mark_text(
+                align="center",
+                baseline="middle",
+                dx=0,
+                dy=10,
+            ).encode(
+                color=alt.value("black"),
+                size=font_size,
+                text=alt.Text(GeneratorsOutput.name),
+            )
 
             return (
                 alt.layer(
-                    lines_plot,
-                    line_midpoints_plot,
-                    line_labels_plot,
-                    nodes_plot,
-                    node_names_plot,
-                    # node_labels_plot,
+                    zones_line_plot,
+                    zones_line_midpoint_plot,
+                    zones_line_label_plot,
+                    zones_plot,
+                    zones_name_plot,
+                    generators_line_plot,
+                    generators_line_midpoint_plot,
+                    generators_line_label_plot,
+                    generators_plot,
+                    generators_name_plot,
                 )
                 .resolve_scale(color="independent")
                 .configure_axis(disable=True, grid=False, domain=False)
@@ -434,6 +527,15 @@ class LmpDashboard(pm.Parameterized):
                 )
                 .interactive()
             )
+
+        generators_select = pn.widgets.Select(
+            options=[
+                GeneratorsOutput.dispatched,
+                GeneratorsOutput.capacity,
+                GeneratorsOutput.utilization,
+            ],
+            name="Generators",
+        )
 
         lines_select = pn.widgets.Select(
             options=[
@@ -460,10 +562,12 @@ class LmpDashboard(pm.Parameterized):
 
         network_chart: alt.Chart = pn.bind(
             make_network_plot,
+            dataframe_generators=self.param.generators,
             dataframe_lines=self.param.lines,
-            dataframe_nodes=self.param.zones,
+            dataframe_zones=self.param.zones,
+            color_field_generators=generators_select,
             color_field_lines=lines_select,
-            color_field_nodes=nodes_select,
+            color_field_zones=nodes_select,
         )
 
         return pn.Tabs(
@@ -471,6 +575,7 @@ class LmpDashboard(pm.Parameterized):
                 TAB_GRAPHICAL,
                 pn.Column(
                     pn.Row(
+                        generators_select,
                         lines_select,
                         nodes_select,
                     ),
@@ -653,7 +758,7 @@ class LmpDashboard(pm.Parameterized):
                     labeled(self.pricer.inputs_panel(), label="Inputs"),
                     labeled(
                         pn.Tabs(
-                            ("Lines", self.lines_panel()),
+                            ("Lines", self.network_panel()),
                             ("Generators", self.generators_panel()),
                             ("Offers", self.offers_panel()),
                             ("Zones", self.zones_panel()),
