@@ -8,7 +8,6 @@ import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
 from mini_iso.dashboard import LmpPricer, LmpDashboard
-from mini_iso.datasets.mini_new_england import load_system
 from mini_iso.typing import Input
 
 ADDRESS: Final[str] = "*"

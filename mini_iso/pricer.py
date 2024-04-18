@@ -22,7 +22,6 @@ from mini_iso.panel_helpers import (
     money_dollars,
     power_megawatts,
 )
-from mini_iso.panel_helpers import index_digits_key
 
 
 def _validate_inputs(

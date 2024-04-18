@@ -1,8 +1,7 @@
 import pathlib
 from typing import Literal
 import pandas as pd
-from mini_iso.typing import Input, Offers
-from mini_iso.panel_helpers import index_digits_key
+from mini_iso.typing import Input
 
 
 def clean(df: pd.DataFrame, orient: Literal["tight"] = "tight") -> pd.DataFrame:
