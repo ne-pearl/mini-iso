@@ -71,15 +71,6 @@ def make_zone_stacks(pricer: LmpPricer) -> alt.VConcatChart:
         zones_price=pricer.zones_price,
     )
 
-    # for zone, clearance in offer_stacks.items():
-    #     print(zone)
-    #     print("=" * len(zone))
-    #     print(clearance.stack)
-    #     print("   price:", clearance.marginal_price)
-    #     print("    load:", clearance.load)
-    #     print("net prod:", clearance.stack[OfferStack.dispatched_right].max())
-    #     print()
-
     return alt.vconcat(
         *(
             zone_stack.plot().properties(title=zone)

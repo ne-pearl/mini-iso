@@ -238,9 +238,6 @@ class Input:
         )
         graph: nx.Graph = nx.compose(zones_graph, generators_graph)
 
-        print("edges")
-        print(graph.edges())
-
         def get_pos(
             df: pd.DataFrame, part: Part, x_column: str, y_column: str
         ) -> dict[Node, Pos]:

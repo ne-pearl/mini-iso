@@ -48,7 +48,6 @@ def load_auction(case_path: Path) -> Auction:
 parser = argparse.ArgumentParser(description="Mini-ISO applications")
 parser.add_argument("path", type=Path)
 args = parser.parse_args()
-print("args:", vars(args))
 auction: Auction = load_auction(args.path)
 
 
