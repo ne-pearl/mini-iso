@@ -366,6 +366,8 @@ class LmpDashboard(pm.Parameterized):
                     size=alt.value(5),
                     tooltip=[
                         alt.Tooltip(LinesOutput.name),
+                        alt.Tooltip(LinesOutput.zone_from),
+                        alt.Tooltip(LinesOutput.zone_to),
                         alt.Tooltip(LinesOutput.slack, format=".2f"),
                         alt.Tooltip(LinesOutput.utilization, format=".0%"),
                         alt.Tooltip(LinesOutput.is_critical),
@@ -388,8 +390,8 @@ class LmpDashboard(pm.Parameterized):
             zones_line_label_plot = zones_line_midpoint_plot.mark_text(
                 align="center",
                 baseline="middle",
-                dx=10,
-                dy=10,
+                dx=0,
+                dy=0,
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
@@ -422,7 +424,7 @@ class LmpDashboard(pm.Parameterized):
                 align="center",
                 baseline="middle",
                 dx=0,
-                dy=10,
+                dy=0,
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
@@ -448,6 +450,7 @@ class LmpDashboard(pm.Parameterized):
                     size=alt.value(5),
                     tooltip=[
                         alt.Tooltip(GeneratorsOutput.name),
+                        alt.Tooltip(GeneratorsOutput.zone),
                         alt.Tooltip(GeneratorsOutput.dispatched, format=".0f"),
                         alt.Tooltip(GeneratorsOutput.capacity, format=".0f"),
                         alt.Tooltip(GeneratorsOutput.utilization, format=".0%"),
@@ -467,8 +470,8 @@ class LmpDashboard(pm.Parameterized):
             generators_line_label_plot = generators_line_midpoint_plot.mark_text(
                 align="center",
                 baseline="middle",
-                dx=10,
-                dy=10,
+                dx=0,
+                dy=0,
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
@@ -499,7 +502,7 @@ class LmpDashboard(pm.Parameterized):
                 align="center",
                 baseline="middle",
                 dx=0,
-                dy=10,
+                dy=0,
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
@@ -508,16 +511,19 @@ class LmpDashboard(pm.Parameterized):
 
             return (
                 alt.layer(
+                    # Lower layers: Lines
                     zones_line_plot,
-                    zones_line_midpoint_plot,
-                    zones_line_label_plot,
-                    zones_plot,
-                    zones_name_plot,
                     generators_line_plot,
-                    generators_line_midpoint_plot,
-                    generators_line_label_plot,
+                    # Middle layers: Nodes
+                    zones_plot,
                     generators_plot,
+                    # Upper layers: Text
+                    generators_line_label_plot,
+                    generators_line_midpoint_plot,
                     generators_name_plot,
+                    zones_line_label_plot,
+                    zones_line_midpoint_plot,
+                    zones_name_plot,
                 )
                 .resolve_scale(color="independent")
                 .configure_axis(disable=True, grid=False, domain=False)
