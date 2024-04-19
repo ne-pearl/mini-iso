@@ -18,7 +18,7 @@ from mini_iso.typing import (
     Input,
     LineId,
     Lines,
-    MoneyUSDPerMW,
+    PriceUSDPerMWh,
     Offers,
     PowerMW,
     Susceptance,
@@ -46,7 +46,7 @@ class ClosedRange(collections.abc.Mapping[str, T]):
 
 GENERATORS_NUM: Final = ClosedRange[int](2, 10)
 GENERATORS_CAPACITY_MW: Final = ClosedRange[PowerMW](200.0, 2000.0)
-GENERATORS_COST_USD_PER_MW: Final = ClosedRange[MoneyUSDPerMW](0.0, 500.0)
+GENERATORS_COST_USD_PER_MW: Final = ClosedRange[PriceUSDPerMWh](0.0, 500.0)
 
 LINES_COTREE_DENSITY: Final = ClosedRange[Fraction](0.3, 1.0)
 LINES_CAPACITY_MW: Final = ClosedRange[PowerMW](10, 1000)
@@ -144,7 +144,7 @@ def generators_dataframe(
                 ),
                 hppd.column(
                     name=Generators.cost,
-                    dtype=MoneyUSDPerMW,
+                    dtype=PriceUSDPerMWh,
                     elements=costs,
                 ),
             ],
@@ -233,7 +233,7 @@ default_offers_num_per_generator = hpst.integers(**OFFERS_NUM_PER_GENERATOR)
 def offers_dataframe(
     draw: hpst.DrawFn,
     names: Sequence[GeneratorId],
-    costs: Sequence[MoneyUSDPerMW],
+    costs: Sequence[PriceUSDPerMWh],
     capacities: Sequence[PowerMW],
     num_offers_per_generator=default_offers_num_per_generator,
 ):
@@ -252,7 +252,7 @@ def offers_dataframe(
     )
 
     def make_generator_offers(
-        name: str, capacity: PowerMW, cost: MoneyUSDPerMW, num_offers: int
+        name: str, capacity: PowerMW, cost: PriceUSDPerMWh, num_offers: int
     ) -> DataFrame[Offers]:
         def normalize(elements: list[numbers.Number]) -> list[float]:
             total: numbers.Number = sum(elements)
