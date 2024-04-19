@@ -15,7 +15,7 @@ from pandera.errors import SchemaError
 
 
 GeneratorId: TypeAlias = str
-LineId: TypeAlias = int
+LineId: TypeAlias = str
 TrancheId: TypeAlias = str
 ZoneId: TypeAlias = str
 OfferId: TypeAlias = tuple[GeneratorId, TrancheId]
@@ -30,7 +30,7 @@ Model = TypeVar("Model")
 
 
 def _float_field(*args, **kwargs):
-    return Field(*args, **kwargs, coerce=True, ignore_na=False)
+    return Field(*args, **kwargs, ignore_na=False)
 
 
 def _validate_and_reindex(
@@ -51,7 +51,7 @@ def _validate_and_reindex(
     try:
         # FIXME: This doesn't seem right!
         model.validate(result)
-        return DataFrame[Model](result)
+        return DataFrame[model](result)
     except SchemaError as error:
         print(f"Schema errors and failure cases for {model}:")
         print(error.failure_cases)
@@ -149,11 +149,11 @@ class Zones(DataFrameModel):
         unique_column_names: bool = True
 
     # Inputs
-    name: Index[str] = Field(check_name=True, unique=True)
+    name: Index[ZoneId] = Field(check_name=True, unique=True)
     load: Series[PowerMW] = _float_field()
 
     # Calculated
-    price: Series[MoneyUSDPerMW] = _float_field()
+    # price: Series[MoneyUSDPerMW] = _float_field()
     x: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
     y: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
 
@@ -179,7 +179,7 @@ class OffersDispatched(DataFrameModel):
 
 
 class ZonesPrice(DataFrameModel):
-    name: Index[str] = Field(check_name=True, unique=True)
+    name: Index[ZoneId] = Field(check_name=True, unique=True)
     price: Series[MoneyUSDPerMW] = _float_field()
 
 
@@ -226,15 +226,19 @@ class Input:
                 ((Part.ZONE, from_) for from_ in self.lines[Lines.zone_from]),
                 ((Part.ZONE, to_) for to_ in self.lines[Lines.zone_to]),
                 itertools.repeat({line_weight_key: line_weight_zone}),
-            )
+            ),
+            create_using=nx.DiGraph,
         )
         generators_graph: nx.Graph = nx.from_edgelist(
             (
-                (Part.GENERATOR, from_),
-                (Part.ZONE, to_),
-                {line_weight_key: line_weight_generator},
-            )
-            for from_, to_ in self.generators[Generators.zone].items()
+                (
+                    (Part.GENERATOR, from_),
+                    (Part.ZONE, to_),
+                    {line_weight_key: line_weight_generator},
+                )
+                for from_, to_ in self.generators[Generators.zone].items()
+            ),
+            create_using=nx.DiGraph,
         )
         graph: nx.Graph = nx.compose(zones_graph, generators_graph)
 
@@ -268,8 +272,8 @@ class Input:
         fixed: dict[Node, bool] = {node: True for node in pos.keys()}
         layout = nx.spring_layout(
             graph,
-            pos=pos,
-            fixed=fixed,
+            pos=pos or None,  # must be non-empty or None
+            fixed=fixed or None,  # must be non-empty or None
             iterations=5000,
             seed=0,
             weight=line_weight_key,
@@ -332,23 +336,22 @@ class Input:
 
 
 class GeneratorsSolution(DataFrameModel):
-    name: Index[str]
+    name: Index[GeneratorId]
 
 
 class LinesSolution(DataFrameModel):
-    # FIXME: For consistency, Index[int] should be Index[str]
-    name: Index[int] = Field(unique=True)
+    name: Index[LineId] = Field(unique=True)
     quantity: Series[PowerMW] = Field(coerce=True)
 
 
 class OffersSolution(DataFrameModel):
-    generator: Index[str]
-    tranche: Index[str]
+    generator: Index[GeneratorId]
+    tranche: Index[TrancheId]
     quantity_dispatched: Series[PowerMW] = Field(coerce=True)
 
 
 class ZonesSolution(DataFrameModel):
-    name: Index[str] = Field(unique=True)
+    name: Index[ZoneId] = Field(unique=True)
     price: Series[MoneyUSDPerMW] = Field(coerce=True)
 
 
@@ -395,8 +398,8 @@ class OffersOutput(DataFrameModel):
         multiindex_strict = True
         unique_column_names: bool = True
 
-    generator: Index[str]
-    tranche: Index[str]
+    generator: Index[GeneratorId]
+    tranche: Index[TrancheId]
     zone: Series[ZoneId]
     price: Series[MoneyUSDPerMW] = Field(coerce=True)
     quantity: Series[PowerMW] = Field(coerce=True)
