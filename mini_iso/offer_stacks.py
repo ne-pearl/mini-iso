@@ -18,7 +18,7 @@ from mini_iso.typing import (
     Input,
     Lines,
     LinesFlow,
-    MoneyUSDPerMW,
+    PriceUSDPerMWh,
     Offers,
     OffersDispatched,
     PowerMW,
@@ -52,8 +52,8 @@ class OfferStack(DataFrameModel):
     capacity_right: Series[PowerMW] = Field(coerce=True)
     dispatched_left: Series[PowerMW] = Field(coerce=True)
     dispatched_right: Series[PowerMW] = Field(coerce=True)
-    price_lower: Series[MoneyUSDPerMW] = Field(coerce=True)
-    price_upper: Series[MoneyUSDPerMW] = Field(coerce=True)
+    price_lower: Series[PriceUSDPerMWh] = Field(coerce=True)
+    price_upper: Series[PriceUSDPerMWh] = Field(coerce=True)
     utilization: Series[Fraction] = Field(coerce=True)
     status: Series[str]
 
@@ -72,7 +72,7 @@ class Intervals:
 @dataclasses.dataclass(frozen=True, slots=True)
 class Clearance:
     load: PowerMW
-    marginal_price: MoneyUSDPerMW
+    marginal_price: PriceUSDPerMWh
     stack: DataFrame[OfferStack]
     zone: ZoneId
 
@@ -89,7 +89,7 @@ class Clearance:
 
         stack: DataFrame[OfferStack] = self.stack
         load: PowerMW = self.load
-        marginal_price: MoneyUSDPerMW = self.marginal_price
+        marginal_price: PriceUSDPerMWh = self.marginal_price
 
         offers_chart = alt.Chart(stack.reset_index())
         aggregate_chart = alt.Chart(
@@ -148,7 +148,7 @@ class Clearance:
         flow_zone_from: Series[str] = zone_from.mask(negative_flow, zone_to)
         flow_zone_to: Series[str] = zone_to.mask(negative_flow, zone_from)
         flow_quantity: Series[PowerMW] = line_quantity.abs()
-        flow_price: Series[MoneyUSDPerMW] = pd.Series(
+        flow_price: Series[PriceUSDPerMWh] = pd.Series(
             zones_price.loc[flow_zone_from].values.flatten(),
             index=flow_zone_from.index,
             name=FLOW_PRICE,

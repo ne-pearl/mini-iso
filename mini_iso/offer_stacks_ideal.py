@@ -12,7 +12,7 @@ from mini_iso.typing import (
     Offers,
     OffersOutput,
     PowerMW,
-    MoneyUSDPerMW,
+    PriceUSDPerMWh,
     TrancheId,
     Zones,
 )
@@ -29,8 +29,8 @@ class CumulativeOffers(DataFrameModel):
     tranche: Index[TrancheId]
     quantity_left: Series[PowerMW] = Field(coerce=True)
     quantity_right: Series[PowerMW] = Field(coerce=True)
-    price_lower: Series[MoneyUSDPerMW] = Field(coerce=True)
-    price_upper: Series[MoneyUSDPerMW] = Field(coerce=True)
+    price_lower: Series[PriceUSDPerMWh] = Field(coerce=True)
+    price_upper: Series[PriceUSDPerMWh] = Field(coerce=True)
 
     class Config:
         multiindex_name = "offer"
@@ -43,7 +43,7 @@ class OfferStack:
 
     cumulative_data: DataFrame[CumulativeOffers]
     load: PowerMW
-    marginal_price: MoneyUSDPerMW
+    marginal_price: PriceUSDPerMWh
 
     @classmethod
     def from_offers(
@@ -96,7 +96,7 @@ class OfferStack:
 
         offers_by_price: DataFrame[CumulativeOffers] = self.cumulative_data
         load: PowerMW = self.load
-        marginal_price: MoneyUSDPerMW = self.marginal_price
+        marginal_price: PriceUSDPerMWh = self.marginal_price
 
         offers_chart = alt.Chart(offers_by_price.reset_index())
         aggregate_chart = alt.Chart(

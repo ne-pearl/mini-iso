@@ -21,7 +21,7 @@ ZoneId: TypeAlias = str
 OfferId: TypeAlias = tuple[GeneratorId, TrancheId]
 Fraction: TypeAlias = float
 MassKgPerMW: TypeAlias = float
-MoneyUSDPerMW: TypeAlias = float
+PriceUSDPerMWh: TypeAlias = float
 PowerMW: TypeAlias = float
 SpatialCoordinate: TypeAlias = float
 Susceptance: TypeAlias = float
@@ -70,7 +70,7 @@ class Generators(DataFrameModel):
     name: Index[GeneratorId] = Field(check_name=True, unique=True)
     capacity: Series[PowerMW] = _float_field()
     zone: Series[ZoneId]
-    cost: Series[MoneyUSDPerMW] = _float_field()
+    cost: Series[PriceUSDPerMWh] = _float_field()
     is_included: Optional[Series[bool]] = Field(default=True)
 
     x: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
@@ -115,7 +115,7 @@ class Offers(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
     quantity: Series[PowerMW] = _float_field()
-    price: Series[MoneyUSDPerMW] = _float_field()
+    price: Series[PriceUSDPerMWh] = _float_field()
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> pd.DataFrame:
@@ -136,9 +136,9 @@ class OffersSummary(DataFrameModel):
     quantity_offered: Series[PowerMW] = _float_field()
     quantity_dispatched: Series[PowerMW] = _float_field()
     utilization: Series[Fraction] = _float_field()
-    price_offered: Series[MoneyUSDPerMW] = _float_field()
-    price_lmp: Series[MoneyUSDPerMW] = _float_field()
-    excess: Series[MoneyUSDPerMW] = _float_field()
+    price_offered: Series[PriceUSDPerMWh] = _float_field()
+    price_lmp: Series[PriceUSDPerMWh] = _float_field()
+    excess: Series[PriceUSDPerMWh] = _float_field()
 
 
 class Zones(DataFrameModel):
@@ -178,7 +178,7 @@ class OffersDispatched(DataFrameModel):
 
 class ZonesPrice(DataFrameModel):
     name: Index[ZoneId] = Field(check_name=True, unique=True)
-    price: Series[MoneyUSDPerMW] = _float_field()
+    price: Series[PriceUSDPerMWh] = _float_field()
 
 
 class Part(enum.Enum):
@@ -350,7 +350,7 @@ class OffersSolution(DataFrameModel):
 
 class ZonesSolution(DataFrameModel):
     name: Index[ZoneId] = Field(unique=True)
-    price: Series[MoneyUSDPerMW] = _float_field()
+    price: Series[PriceUSDPerMWh] = _float_field()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -399,7 +399,7 @@ class OffersOutput(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
     zone: Series[ZoneId]
-    price: Series[MoneyUSDPerMW] = _float_field()
+    price: Series[PriceUSDPerMWh] = _float_field()
     quantity: Series[PowerMW] = _float_field()
     quantity_dispatched: Series[PowerMW] = _float_field()
     utilization: Series[Fraction] = _float_field()

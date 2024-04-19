@@ -12,7 +12,7 @@ from mini_iso.typing import (
     LineId,
     Lines,
     LinesSolution,
-    MoneyUSDPerMW,
+    PriceUSDPerMWh,
     OfferId,
     Offers,
     OffersSolution,
@@ -108,7 +108,7 @@ def clear_auction(
     # FIXME: Use these updated bounds in place of extra constraints
     # pmax.update({(g, t): 0.0 for g in GP for t in Tg[g]})  # excluded units
 
-    tranche_cost: dict[OfferId, MoneyUSDPerMW] = {
+    tranche_cost: dict[OfferId, PriceUSDPerMWh] = {
         (str(g), str(t)): price
         for g, group in offers_df.groupby(Offers.generator)
         for t, price in zip(group[Offers.tranche], group[Offers.price])
