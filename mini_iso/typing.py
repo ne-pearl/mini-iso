@@ -30,7 +30,7 @@ Model = TypeVar("Model")
 
 
 def _float_field(*args, **kwargs):
-    return Field(*args, **kwargs, ignore_na=False)
+    return Field(*args, **kwargs, coerce=True, ignore_na=False)
 
 
 def _validate_and_reindex(
@@ -152,8 +152,6 @@ class Zones(DataFrameModel):
     name: Index[ZoneId] = Field(check_name=True, unique=True)
     load: Series[PowerMW] = _float_field()
 
-    # Calculated
-    # price: Series[MoneyUSDPerMW] = _float_field()
     x: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
     y: Optional[Series[SpatialCoordinate]] = _float_field(nullable=True)
 
@@ -341,18 +339,18 @@ class GeneratorsSolution(DataFrameModel):
 
 class LinesSolution(DataFrameModel):
     name: Index[LineId] = Field(unique=True)
-    quantity: Series[PowerMW] = Field(coerce=True)
+    quantity: Series[PowerMW] = _float_field()
 
 
 class OffersSolution(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
-    quantity_dispatched: Series[PowerMW] = Field(coerce=True)
+    quantity_dispatched: Series[PowerMW] = _float_field()
 
 
 class ZonesSolution(DataFrameModel):
     name: Index[ZoneId] = Field(unique=True)
-    price: Series[MoneyUSDPerMW] = Field(coerce=True)
+    price: Series[MoneyUSDPerMW] = _float_field()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -363,33 +361,33 @@ class Solution:
 
 
 class GeneratorsOutput(GeneratorsSolution):
-    capacity: Series[PowerMW] = Field(coerce=True)
+    capacity: Series[PowerMW] = _float_field()
     zone: Series[ZoneId]
-    dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[Fraction] = Field(coerce=True)
-    x: Series[SpatialCoordinate] = Field(coerce=True)
-    y: Series[SpatialCoordinate] = Field(coerce=True)
-    x_zone: Series[SpatialCoordinate] = Field(coerce=True)
-    y_zone: Series[SpatialCoordinate] = Field(coerce=True)
-    x_mid: Series[SpatialCoordinate] = Field(coerce=True)
-    y_mid: Series[SpatialCoordinate] = Field(coerce=True)
+    dispatched: Series[PowerMW] = _float_field()
+    utilization: Series[Fraction] = _float_field()
+    x: Series[SpatialCoordinate] = _float_field()
+    y: Series[SpatialCoordinate] = _float_field()
+    x_zone: Series[SpatialCoordinate] = _float_field()
+    y_zone: Series[SpatialCoordinate] = _float_field()
+    x_mid: Series[SpatialCoordinate] = _float_field()
+    y_mid: Series[SpatialCoordinate] = _float_field()
 
 
 class LinesOutput(LinesSolution):
     zone_from: Series[ZoneId]
     zone_to: Series[ZoneId]
-    susceptance: Series[Susceptance] = Field(coerce=True)
-    quantity_abs: Series[PowerMW] = Field(coerce=True)
-    capacity: Series[PowerMW] = Field(coerce=True)
-    slack: Series[PowerMW] = Field(coerce=True)
+    susceptance: Series[Susceptance] = _float_field()
+    quantity_abs: Series[PowerMW] = _float_field()
+    capacity: Series[PowerMW] = _float_field()
+    slack: Series[PowerMW] = _float_field()
     utilization: Series[Fraction]
     is_critical: Series[bool]
-    x_from: Series[SpatialCoordinate] = Field(coerce=True)
-    y_from: Series[SpatialCoordinate] = Field(coerce=True)
-    x_to: Series[SpatialCoordinate] = Field(coerce=True)
-    y_to: Series[SpatialCoordinate] = Field(coerce=True)
-    x_mid: Series[SpatialCoordinate] = Field(coerce=True)
-    y_mid: Series[SpatialCoordinate] = Field(coerce=True)
+    x_from: Series[SpatialCoordinate] = _float_field()
+    y_from: Series[SpatialCoordinate] = _float_field()
+    x_to: Series[SpatialCoordinate] = _float_field()
+    y_to: Series[SpatialCoordinate] = _float_field()
+    x_mid: Series[SpatialCoordinate] = _float_field()
+    y_mid: Series[SpatialCoordinate] = _float_field()
 
 
 class OffersOutput(DataFrameModel):
@@ -401,10 +399,10 @@ class OffersOutput(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
     zone: Series[ZoneId]
-    price: Series[MoneyUSDPerMW] = Field(coerce=True)
-    quantity: Series[PowerMW] = Field(coerce=True)
-    quantity_dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[Fraction] = Field(coerce=True)
+    price: Series[MoneyUSDPerMW] = _float_field()
+    quantity: Series[PowerMW] = _float_field()
+    quantity_dispatched: Series[PowerMW] = _float_field()
+    utilization: Series[Fraction] = _float_field()
     # The "nullable=True" appears to be ignored, perhaps
     # because of this:
     # https://pandera.readthedocs.io/en/stable/dtype_validation.html#how-data-types-interact-with-nullable
@@ -417,9 +415,9 @@ class OffersOutput(DataFrameModel):
 
 
 class ZonesOutput(ZonesSolution):
-    load: Series[PowerMW] = Field(coerce=True)
-    capacity: Series[PowerMW] = Field(coerce=True)
-    dispatched: Series[PowerMW] = Field(coerce=True)
-    utilization: Series[PowerMW] = Field(coerce=True)
-    x: Series[SpatialCoordinate] = Field(coerce=True)
-    y: Series[SpatialCoordinate] = Field(coerce=True)
+    load: Series[PowerMW] = _float_field()
+    capacity: Series[PowerMW] = _float_field()
+    dispatched: Series[PowerMW] = _float_field()
+    utilization: Series[PowerMW] = _float_field()
+    x: Series[SpatialCoordinate] = _float_field()
+    y: Series[SpatialCoordinate] = _float_field()
