@@ -191,16 +191,15 @@ class LmpPricer(pn.viewable.Viewer):
                     Lines.capacity: power_megawatts.formatter,
                     Lines.susceptance: admittance_siemens.formatter,
                 },
-                show_columns=[
-                    Lines.name,
-                    Lines.zone_from,
-                    Lines.zone_to,
-                    Lines.capacity,
-                    Lines.susceptance,
-                ],
+                show_index=False,
                 text_align={
                     Lines.capacity: power_megawatts.align,
                     Lines.susceptance: admittance_siemens.align,
+                },
+                titles={
+                    # Abbreviations to save width
+                    Lines.zone_from: "from",
+                    Lines.zone_to: "to",
                 },
             ),
             tabulator_item(

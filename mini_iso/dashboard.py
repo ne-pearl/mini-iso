@@ -321,6 +321,14 @@ class LmpDashboard(pm.Parameterized):
                         GeneratorsOutput.dispatched: power_megawatts.formatter,
                         GeneratorsOutput.utilization: fraction_percentage.formatter,
                     },
+                    hidden_columns=[
+                        GeneratorsOutput.x,
+                        GeneratorsOutput.y,
+                        GeneratorsOutput.x_zone,
+                        GeneratorsOutput.y_zone,
+                        GeneratorsOutput.x_mid,
+                        GeneratorsOutput.y_mid,
+                    ],
                     show_index=False,
                     text_align={
                         GeneratorsOutput.capacity: power_megawatts.align,
@@ -642,6 +650,16 @@ class LmpDashboard(pm.Parameterized):
                         LinesOutput.x_mid: real_unspecified.formatter,
                         LinesOutput.y_mid: real_unspecified.formatter,
                     },
+                    hidden_columns=[
+                        LinesOutput.name,
+                        LinesOutput.susceptance,
+                        LinesOutput.x_from,
+                        LinesOutput.y_from,
+                        LinesOutput.x_to,
+                        LinesOutput.y_to,
+                        LinesOutput.x_mid,
+                        LinesOutput.y_mid,
+                    ],
                     show_index=False,
                     text_align={
                         LinesOutput.susceptance: admittance_siemens.align,
@@ -657,6 +675,11 @@ class LmpDashboard(pm.Parameterized):
                         LinesOutput.y_to: real_unspecified.align,
                         LinesOutput.x_mid: real_unspecified.align,
                         LinesOutput.y_mid: real_unspecified.align,
+                    },
+                    titles={
+                        LinesOutput.zone_from: "from",
+                        LinesOutput.zone_to: "to",
+                        LinesOutput.is_critical: "congested",
                     },
                 ),
             ),
@@ -737,6 +760,7 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.utilization: fraction_percentage.formatter,
                         OffersOutput.is_marginal: tristate_check.formatter,
                     },
+                    hidden_columns=[],
                     show_index=False,
                     text_align={
                         OffersOutput.price: price_usd_per_mwh.align,
@@ -744,6 +768,10 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.quantity_dispatched: power_megawatts.align,
                         OffersOutput.utilization: fraction_percentage.align,
                         OffersOutput.is_marginal: tristate_check.align,
+                    },
+                    titles={
+                        OffersOutput.quantity_dispatched: "dispatched",
+                        OffersOutput.is_marginal: "marginal",
                     },
                 ),
             ),
@@ -793,6 +821,10 @@ class LmpDashboard(pm.Parameterized):
                         ZonesOutput.x: real_unspecified.formatter,
                         ZonesOutput.y: real_unspecified.formatter,
                     },
+                    hidden_columns=[
+                        ZonesOutput.x,
+                        ZonesOutput.y,
+                    ],
                     show_index=False,
                     text_align={
                         ZonesOutput.price: price_usd_per_mwh.align,
@@ -824,6 +856,6 @@ class LmpDashboard(pm.Parameterized):
             sidebar=[
                 labeled(self.pricer.inputs_panel(), label="Inputs"),
             ],
-            sidebar_width=600,
+            sidebar_width=450,
             title="Mini-ISO: Dashboard",
         )
