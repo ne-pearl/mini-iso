@@ -8,7 +8,7 @@ from mini_iso.typing import (
     ZonesPrice,
 )
 from mini_iso.panel_helpers import (
-    money_dollars,
+    price_usd_per_mwh,
     power_megawatts,
     tabulator_item,
 )
@@ -71,11 +71,11 @@ class Auction(pn.viewable.Viewer):
                                 self.param.offers_pending,
                                 show_index=False,
                                 formatters={
-                                    Offers.price: money_dollars.formatter,
+                                    Offers.price: price_usd_per_mwh.formatter,
                                     Offers.quantity: power_megawatts.formatter,
                                 },
                                 text_align={
-                                    Offers.price: money_dollars.align,
+                                    Offers.price: price_usd_per_mwh.align,
                                     Offers.quantity: power_megawatts.align,
                                 },
                             ),
@@ -88,11 +88,11 @@ class Auction(pn.viewable.Viewer):
                                 self.param.offers_committed,
                                 show_index=False,
                                 formatters={
-                                    Offers.price: money_dollars.formatter,
+                                    Offers.price: price_usd_per_mwh.formatter,
                                     Offers.quantity: power_megawatts.formatter,
                                 },
                                 text_align={
-                                    Offers.price: money_dollars.align,
+                                    Offers.price: price_usd_per_mwh.align,
                                     Offers.quantity: power_megawatts.align,
                                 },
                             ),
@@ -118,10 +118,10 @@ class Auction(pn.viewable.Viewer):
                             tabulator_item(
                                 self.param.zones_price,
                                 formatters={
-                                    ZonesPrice.price: money_dollars.formatter,
+                                    ZonesPrice.price: price_usd_per_mwh.formatter,
                                 },
                                 text_align={
-                                    ZonesPrice.price: money_dollars.align,
+                                    ZonesPrice.price: price_usd_per_mwh.align,
                                 },
                             ),
                         ),

@@ -63,8 +63,8 @@ admittance_siemens = Format.from_unit("S")
 boolean_check = Format.boolean(allow_empty=False)
 tristate_check = Format.boolean(allow_empty=True)
 fraction_percentage = Format(align="right", formatter=NumberFormatter(format="0%"))
-money_dollars = Format(align="right", formatter=NumberFormatter(format="$0"))
 power_megawatts = Format.from_unit("MW")
+price_usd_per_mwh = Format.from_unit("$/MHh")
 real_unspecified = Format(align="right", formatter=NumberFormatter(format="0.0"))
 
 

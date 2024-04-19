@@ -19,7 +19,7 @@ from mini_iso.typing import (
 from mini_iso.panel_helpers import (
     tabulator_item,
     admittance_siemens,
-    money_dollars,
+    price_usd_per_mwh,
     power_megawatts,
 )
 
@@ -208,7 +208,7 @@ class LmpPricer(pn.viewable.Viewer):
                 disabled=False,
                 formatters={
                     Offers.quantity: power_megawatts.formatter,
-                    Offers.price: money_dollars.formatter,
+                    Offers.price: price_usd_per_mwh.formatter,
                 },
                 show_columns=[
                     Offers.generator,
@@ -219,7 +219,7 @@ class LmpPricer(pn.viewable.Viewer):
                 show_index=False,  # NB: after call to reset_index
                 text_align={
                     Offers.quantity: power_megawatts.align,
-                    Offers.price: money_dollars.align,
+                    Offers.price: price_usd_per_mwh.align,
                 },
             ),
             tabulator_item(
@@ -255,8 +255,8 @@ class LmpPricer(pn.viewable.Viewer):
             tabulator_item(
                 self.param.zones_price,
                 name=self.param.zones.label,
-                formatters={ZonesPrice.price: money_dollars.formatter},
-                text_align={ZonesPrice.price: money_dollars.align},
+                formatters={ZonesPrice.price: price_usd_per_mwh.formatter},
+                text_align={ZonesPrice.price: price_usd_per_mwh.align},
             ),
         )
 

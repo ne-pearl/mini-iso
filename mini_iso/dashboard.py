@@ -34,7 +34,7 @@ from mini_iso.panel_helpers import (
     admittance_siemens,
     boolean_check,
     fraction_percentage,
-    money_dollars,
+    price_usd_per_mwh,
     power_megawatts,
     real_unspecified,
     tristate_check,
@@ -706,7 +706,7 @@ class LmpDashboard(pm.Parameterized):
                 pn.widgets.Tabulator.from_param(
                     self.param.offers,
                     formatters={
-                        OffersOutput.price: money_dollars.formatter,
+                        OffersOutput.price: price_usd_per_mwh.formatter,
                         OffersOutput.quantity: power_megawatts.formatter,
                         OffersOutput.quantity_dispatched: power_megawatts.formatter,
                         OffersOutput.utilization: fraction_percentage.formatter,
@@ -714,7 +714,7 @@ class LmpDashboard(pm.Parameterized):
                     },
                     show_index=False,
                     text_align={
-                        OffersOutput.price: money_dollars.align,
+                        OffersOutput.price: price_usd_per_mwh.align,
                         OffersOutput.quantity: power_megawatts.align,
                         OffersOutput.quantity_dispatched: power_megawatts.align,
                         OffersOutput.utilization: fraction_percentage.align,
@@ -760,7 +760,7 @@ class LmpDashboard(pm.Parameterized):
                 pn.widgets.Tabulator.from_param(
                     self.param.zones,
                     formatters={
-                        ZonesOutput.price: money_dollars.formatter,
+                        ZonesOutput.price: price_usd_per_mwh.formatter,
                         ZonesOutput.load: power_megawatts.formatter,
                         ZonesOutput.dispatched: power_megawatts.formatter,
                         ZonesOutput.capacity: power_megawatts.formatter,
@@ -770,7 +770,7 @@ class LmpDashboard(pm.Parameterized):
                     },
                     show_index=False,
                     text_align={
-                        ZonesOutput.price: money_dollars.align,
+                        ZonesOutput.price: price_usd_per_mwh.align,
                         ZonesOutput.load: power_megawatts.align,
                         ZonesOutput.dispatched: power_megawatts.align,
                         ZonesOutput.capacity: power_megawatts.align,

@@ -14,7 +14,7 @@ from mini_iso.typing import (
 )
 from mini_iso.panel_helpers import (
     fraction_percentage,
-    money_dollars,
+    price_usd_per_mwh,
     power_megawatts,
 )
 from mini_iso.auction import Auction
@@ -160,12 +160,12 @@ class Bidder(pn.viewable.Viewer):
                                     pn.widgets.Tabulator.from_param(
                                         self.param.offers_drafted,
                                         formatters={
-                                            Offers.price: money_dollars.formatter,
+                                            Offers.price: price_usd_per_mwh.formatter,
                                             Offers.quantity: power_megawatts.formatter,
                                         },
                                         show_index=False,
                                         text_align={
-                                            Offers.price: money_dollars.align,
+                                            Offers.price: price_usd_per_mwh.align,
                                             Offers.quantity: power_megawatts.align,
                                         },
                                     ),
@@ -181,12 +181,12 @@ class Bidder(pn.viewable.Viewer):
                                     self.param.offers_pending,
                                     disabled=True,
                                     formatters={
-                                        Offers.price: money_dollars.formatter,
+                                        Offers.price: price_usd_per_mwh.formatter,
                                         Offers.quantity: power_megawatts.formatter,
                                     },
                                     show_index=False,
                                     text_align={
-                                        Offers.price: money_dollars.align,
+                                        Offers.price: price_usd_per_mwh.align,
                                         Offers.quantity: power_megawatts.align,
                                     },
                                 ),
@@ -198,18 +198,18 @@ class Bidder(pn.viewable.Viewer):
                                 pn.widgets.Tabulator.from_param(
                                     self.param.summary,
                                     formatters={
-                                        OffersSummary.price_lmp: money_dollars.formatter,
-                                        OffersSummary.price_offered: money_dollars.formatter,
-                                        OffersSummary.excess: money_dollars.formatter,
+                                        OffersSummary.price_lmp: price_usd_per_mwh.formatter,
+                                        OffersSummary.price_offered: price_usd_per_mwh.formatter,
+                                        OffersSummary.excess: price_usd_per_mwh.formatter,
                                         OffersSummary.quantity_dispatched: power_megawatts.formatter,
                                         OffersSummary.quantity_offered: power_megawatts.formatter,
                                         OffersSummary.utilization: fraction_percentage.formatter,
                                     },
                                     show_index=False,
                                     text_align={
-                                        OffersSummary.price_lmp: money_dollars.align,
-                                        OffersSummary.price_offered: money_dollars.align,
-                                        OffersSummary.excess: money_dollars.align,
+                                        OffersSummary.price_lmp: price_usd_per_mwh.align,
+                                        OffersSummary.price_offered: price_usd_per_mwh.align,
+                                        OffersSummary.excess: price_usd_per_mwh.align,
                                         OffersSummary.quantity_dispatched: power_megawatts.align,
                                         OffersSummary.quantity_offered: power_megawatts.align,
                                         OffersSummary.utilization: fraction_percentage.align,
@@ -219,11 +219,11 @@ class Bidder(pn.viewable.Viewer):
                                     pn.widgets.Tabulator.from_param(
                                         self.param.zones_price,
                                         formatters={
-                                            ZonesPrice.price: money_dollars.formatter,
+                                            ZonesPrice.price: price_usd_per_mwh.formatter,
                                         },
                                         show_index=True,
                                         text_align={
-                                            ZonesPrice.price: money_dollars.align,
+                                            ZonesPrice.price: price_usd_per_mwh.align,
                                         },
                                     ),
                                     title="Zone Prices",
