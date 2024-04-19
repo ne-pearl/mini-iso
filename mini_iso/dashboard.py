@@ -811,19 +811,19 @@ class LmpDashboard(pm.Parameterized):
         print("LmpDashboard.__panel__")
         return pn.template.VanillaTemplate(
             main=[
-                pn.Row(
-                    labeled(self.pricer.inputs_panel(), label="Inputs"),
-                    labeled(
-                        pn.Tabs(
-                            ("Lines", self.network_panel()),
-                            ("Generators", self.generators_panel()),
-                            ("Offers", self.offers_panel()),
-                            ("Zones", self.zones_panel()),
-                        ),
-                        label="Outputs",
+                labeled(
+                    pn.Tabs(
+                        ("Lines", self.network_panel()),
+                        ("Generators", self.generators_panel()),
+                        ("Offers", self.offers_panel()),
+                        ("Zones", self.zones_panel()),
                     ),
-                )
+                    label="Outputs",
+                ),
             ],
-            sidebar=[],
+            sidebar=[
+                labeled(self.pricer.inputs_panel(), label="Inputs"),
+            ],
+            sidebar_width=600,
             title="Mini-ISO: Dashboard",
         )
