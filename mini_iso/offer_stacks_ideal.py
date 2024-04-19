@@ -8,10 +8,12 @@ from numpy.typing import NDArray
 from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Index, Series
 from mini_iso.typing import (
+    GeneratorId,
     Offers,
     OffersOutput,
     PowerMW,
     MoneyUSDPerMW,
+    TrancheId,
     Zones,
 )
 
@@ -23,8 +25,8 @@ PRICE_LOCAL_KEY = "Local Price"
 class CumulativeOffers(DataFrameModel):
     """Schema for offer data."""
 
-    generator: Index[str]
-    tranche: Index[str]
+    generator: Index[GeneratorId]
+    tranche: Index[TrancheId]
     quantity_left: Series[PowerMW] = Field(coerce=True)
     quantity_right: Series[PowerMW] = Field(coerce=True)
     price_lower: Series[MoneyUSDPerMW] = Field(coerce=True)
