@@ -289,6 +289,7 @@ class LmpDashboard(pm.Parameterized):
                             field_color=GeneratorsOutput.zone,
                             field_x=GeneratorsOutput.name,
                             field_y=field_select,
+                            watch=True,
                         )
                     ),
                 ),
@@ -564,6 +565,7 @@ class LmpDashboard(pm.Parameterized):
             color_field_generators=generators_select,
             color_field_lines=lines_select,
             color_field_zones=nodes_select,
+            watch=True,
         )
 
         return pn.Tabs(
@@ -716,6 +718,7 @@ class LmpDashboard(pm.Parameterized):
                             field_color=ZonesOutput.name,
                             field_x=ZonesOutput.name,
                             field_y=field_select,
+                            watch=True,
                         )
                     ),
                 ),
