@@ -173,10 +173,13 @@ def clear_auction(
         ),
         name="voltage_angle",
     )
-    model.addConstr(
-        theta[Czl[1][0]] == 0.0,
-        name="angle_ref",
-    )
+    if len(Czl) != 0:
+        first_pair: tuple[ZoneId, ZoneId] = list(Czl.values())[0]
+        reference_zone: ZoneId = first_pair[0]
+        model.addConstr(
+            theta[reference_zone] == 0.0,
+            name="angle_ref",
+        )
     # FIXME: Replace with zero bounds on excluded generators
     model.addConstrs(
         (p[g, t] == 0.0 for g in GP for t in Tg[g]),
