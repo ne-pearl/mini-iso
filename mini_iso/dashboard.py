@@ -23,7 +23,9 @@ from mini_iso.typing import (
     Offers,
     OffersDispatched,
     OffersOutput,
+    PaymentUSDPerH,
     PowerMW,
+    PriceUSDPerMWh,
     SpatialCoordinate,
     ZoneId,
     Zones,
@@ -105,6 +107,12 @@ def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataF
         index=pricer.generators.index,
     )
 
+    nodal_prices = Series[PriceUSDPerMWh](
+        data=pricer.zones_price[ZonesPrice.price].loc[zone].values,
+        index=pricer.generators.index,
+    )
+    revenues: Series[PaymentUSDPerH] = nodal_prices * generators_dispatched
+
     assert pricer.generators.index.name == GeneratorsOutput.name
     return DataFrame[GeneratorsOutput](
         {
@@ -120,6 +128,8 @@ def _augment_generators_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataF
             GeneratorsOutput.y_zone: y_zone,
             GeneratorsOutput.x_mid: (x + x_zone) * 0.5,
             GeneratorsOutput.y_mid: (y + y_zone) * 0.5,
+            GeneratorsOutput.nodal_price: nodal_prices,
+            GeneratorsOutput.revenue: revenues,
         },
         index=pricer.generators.index,
     ).reset_index()
@@ -169,14 +179,29 @@ def _augment_lines_dataframe(pricer: LmpPricer) -> DataFrame:
 def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame:
     generator_of_offers: Series[GeneratorId] = offers[Offers.generator]
     zone_of_generators: Series[ZoneId] = pricer.generators[Generators.zone]
-    zone = pd.Series(zone_of_generators[generator_of_offers].values, index=offers.index)
+    zone = Series[ZoneId](
+        data=zone_of_generators[generator_of_offers].values,
+        index=offers.index,
+        name=OffersOutput.zone,
+    )
 
     # Utilization of each offer
     quantity_offered: Series[PowerMW] = offers[Offers.quantity]
     quantity_dispatched: Series[PowerMW] = offers[OffersDispatched.quantity_dispatched]
-    offers_utilization: Series[Fraction] = (
-        quantity_dispatched / quantity_offered
+    offers_utilization = Series[Fraction](
+        quantity_dispatched / quantity_offered,
+        name=OffersOutput.utilization,
     ).fillna(0.0)
+
+    nodal_prices = Series[PriceUSDPerMWh](
+        data=pricer.zones_price[ZonesPrice.price].loc[zone].values,
+        index=offers.index,
+        name=OffersOutput.nodal_price,
+    )
+    revenues = Series[PaymentUSDPerH](
+        nodal_prices * quantity_dispatched,
+        name=OffersOutput.revenue,
+    )
 
     def is_marginal(utilization: Fraction) -> bool | None:
         if utilization == 0.0:
@@ -189,9 +214,12 @@ def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame
         # so we return False instead
         return False
 
-    offers_is_marginal: Series[bool | None] = offers_utilization.map(is_marginal)
+    offers_is_marginal = Series[bool | None](
+        offers_utilization.map(is_marginal),
+        name=OffersOutput.is_marginal,
+    )
 
-    return pd.DataFrame(
+    result = DataFrame[OffersOutput](
         {
             OffersOutput.price: offers[Offers.price].values,
             OffersOutput.quantity: quantity_offered.values,
@@ -199,12 +227,36 @@ def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame
             OffersOutput.utilization: offers_utilization.values,
             OffersOutput.is_marginal: offers_is_marginal.values,
             OffersOutput.zone: zone.values,
+            OffersOutput.nodal_price: nodal_prices.values,
+            OffersOutput.revenue: revenues.values,
         },
         index=pd.MultiIndex.from_arrays(
             [offers[Offers.generator], offers[Offers.tranche]],
             names=OFFERS_INDEX_LABELS,
         ),
-    ).reset_index()
+    )
+
+    result2 = DataFrame[OffersOutput](
+        pd.concat(
+            (
+                offers[Offers.generator],
+                offers[Offers.tranche],
+                offers[Offers.price],
+                quantity_offered,
+                quantity_dispatched,
+                offers_utilization,
+                offers_is_marginal,
+                zone,
+                nodal_prices,
+                revenues,
+            ),
+            axis="columns",
+        ).set_index(OFFERS_INDEX_LABELS)
+    )
+
+    assert result.equals(result2)
+
+    return result.reset_index()
 
 
 def _augment_zones_dataframe(

@@ -65,6 +65,7 @@ tristate_check = Format.boolean(allow_empty=True)
 fraction_percentage = Format(align="right", formatter=NumberFormatter(format="0%"))
 power_megawatts = Format.from_unit("MW")
 price_usd_per_mwh = Format.from_unit("$/MHh")
+payment_usd_per_h = Format.from_unit("$/h")
 real_unspecified = Format(align="right", formatter=NumberFormatter(format="0.0"))
 
 

@@ -23,6 +23,7 @@ Fraction: TypeAlias = float
 MassKgPerMW: TypeAlias = float
 PriceUSDPerMWh: TypeAlias = float
 PowerMW: TypeAlias = float
+PaymentUSDPerH: TypeAlias = float
 SpatialCoordinate: TypeAlias = float
 Susceptance: TypeAlias = float
 
@@ -365,6 +366,8 @@ class GeneratorsOutput(GeneratorsSolution):
     zone: Series[ZoneId]
     dispatched: Series[PowerMW] = _float_field()
     utilization: Series[Fraction] = _float_field()
+    nodal_price: Series[PriceUSDPerMWh] = _float_field()
+    revenue: Series[PaymentUSDPerH] = _float_field()
     x: Series[SpatialCoordinate] = _float_field()
     y: Series[SpatialCoordinate] = _float_field()
     x_zone: Series[SpatialCoordinate] = _float_field()
@@ -399,17 +402,19 @@ class OffersOutput(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
     zone: Series[ZoneId]
-    price: Series[PriceUSDPerMWh] = _float_field()
     quantity: Series[PowerMW] = _float_field()
     quantity_dispatched: Series[PowerMW] = _float_field()
     utilization: Series[Fraction] = _float_field()
+    price: Series[PriceUSDPerMWh] = _float_field()
+    nodal_price: Series[PriceUSDPerMWh] = _float_field()
+    revenue: Series[PaymentUSDPerH] = _float_field()
     # The "nullable=True" appears to be ignored, perhaps
     # because of this:
     # https://pandera.readthedocs.io/en/stable/dtype_validation.html#how-data-types-interact-with-nullable
     #   "datatypes that are inherently not nullable will
     #    fail even if you specify nullable=True because
     #    pandera considers type checks a first-class check
-    #    that’s distinct from any downstream check that
+    #    that's distinct from any downstream check that
     #    you may want to apply to the data"
     is_marginal: Series[bool] = Field(nullable=True)
 
