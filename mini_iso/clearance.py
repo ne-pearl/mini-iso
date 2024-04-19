@@ -202,9 +202,9 @@ def clear_auction(
     }.get(model.Status, Status.UNKNOWN)
 
     if status is Status.OPTIMAL:
-        print(f"... optimal objective: {model.ObjVal:g}")
+        print(f"... succeeded: optimal objective {model.ObjVal:g}")
     else:
-        print(f"... stopped with status {model.Status}: {status.value}")
+        print(f"... failed with status {model.Status} ({status.value})")
         return status, None
 
     assert status is Status.OPTIMAL
