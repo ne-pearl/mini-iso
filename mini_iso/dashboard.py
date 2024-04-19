@@ -1,3 +1,4 @@
+import functools
 from typing import Final
 import altair as alt
 import numpy as np
@@ -48,7 +49,10 @@ def make_bar_chart(
     field_color: str,
     field_x: str,
     field_y: str,
+    caller: str | None = None,
 ) -> alt.Chart:
+    if caller:
+        print(f"{caller} -> make_bar_chart")
     return (
         alt.Chart(dataframe)
         .mark_bar()
@@ -256,20 +260,30 @@ class LmpDashboard(pm.Parameterized):
 
     @pn.depends("pricer.param", on_init=True, watch=True)
     def _refresh(self) -> None:
+        print("LmpDashboard._refresh")
         # Combined offers data
-        offers: DataFrame = pd.concat(
+        offers_new: DataFrame = pd.concat(
             (
                 self.pricer.offers.set_index(OFFERS_INDEX_LABELS),
                 self.pricer.offers_dispatched.set_index(OFFERS_INDEX_LABELS),
             ),
             axis="columns",
         ).reset_index()
-        self.generators = _augment_generators_dataframe(self.pricer, offers=offers)
-        self.lines = _augment_lines_dataframe(self.pricer)
-        self.offers = _augment_offers_dataframe(self.pricer, offers=offers)
-        self.zones = _augment_zones_dataframe(self.pricer, generators=self.generators)
+
+        generators_new = _augment_generators_dataframe(self.pricer, offers=offers_new)
+        lines_new = _augment_lines_dataframe(self.pricer)
+        offers_new = _augment_offers_dataframe(self.pricer, offers=offers_new)
+        zones_new = _augment_zones_dataframe(self.pricer, generators=generators_new)
+
+        self.param.update(
+            generators=generators_new,
+            lines=lines_new,
+            offers=offers_new,
+            zones=zones_new,
+        )
 
     def generators_panel(self) -> pn.viewable.Viewable:
+        print("  LmpDashboard.generators_panel...")
         field_select = pn.widgets.Select(
             options=[
                 GeneratorsOutput.dispatched,
@@ -284,7 +298,10 @@ class LmpDashboard(pm.Parameterized):
                     field_select,
                     pn.pane.Vega(
                         pn.bind(
-                            make_bar_chart,
+                            functools.partial(
+                                make_bar_chart,
+                                caller="    LmpDashboard.generators_panel",
+                            ),
                             dataframe=self.param.generators,
                             field_color=GeneratorsOutput.zone,
                             field_x=GeneratorsOutput.name,
@@ -314,6 +331,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def network_panel(self) -> pn.viewable.Viewable:
+        print("  LmpDashboard.network_panel")
 
         def make_network_plot(
             dataframe_generators: DataFrame,
@@ -620,57 +638,67 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def offers_panel(self) -> pn.viewable.Viewable:
-        offers: DataFrame[OffersOutput] = self.offers.set_index(OFFERS_INDEX_LABELS)
-        zones: DataFrame[ZonesOutput] = self.zones.set_index(Zones.name)
+        print("  LmpDashboard.offers_panel")
 
-        offer_stacks_chart_zonal: alt.VConcatChart = make_zone_stacks(self.pricer)
+        def _refresh(offers_in: DataFrame, zones_in: DataFrame, pricer: LmpPricer):
 
-        # TODO: Refactor to tabulate marginal price for each zone
-        offer_stacks: dict[str, OfferStack] = OfferStack.from_offers_by_zone(
-            offers=offers,
-            zones=zones,
-        )
-        offer_stacks_chart_ideal: alt.VConcatChart = (
-            alt.vconcat(
-                *(
-                    zone_stack.plot(color_field=OffersOutput.generator).properties(
-                        title=zone
-                    )
-                    for zone, zone_stack in offer_stacks.items()
-                )
+            offers: DataFrame[OffersOutput] = offers_in.set_index(OFFERS_INDEX_LABELS)
+            zones: DataFrame[ZonesOutput] = zones_in.set_index(Zones.name)
+
+            offer_stacks_chart_zonal: alt.VConcatChart = make_zone_stacks(self.pricer)
+
+            # TODO: Refactor to tabulate marginal price for each zone
+            offer_stacks: dict[str, OfferStack] = OfferStack.from_offers_by_zone(
+                offers=offers,
+                zones=zones,
             )
-            .resolve_scale(color="independent")
-            .interactive()
-        )
+            offer_stacks_chart_ideal: alt.VConcatChart = (
+                alt.vconcat(
+                    *(
+                        zone_stack.plot(color_field=OffersOutput.generator).properties(
+                            title=zone
+                        )
+                        for zone, zone_stack in offer_stacks.items()
+                    )
+                )
+                .resolve_scale(color="independent")
+                .interactive()
+            )
 
-        # TODO: Refactor to store marginal price
-        offer_stack: OfferStack = OfferStack.from_offers(
-            offers=offers,
-            load=zones[ZonesOutput.load].sum(),
-        )
-        offer_stack_chart: alt.LayerChart = offer_stack.plot(
-            color_field=OffersOutput.zone
-        ).interactive()
+            # TODO: Refactor to store marginal price
+            offer_stack: OfferStack = OfferStack.from_offers(
+                offers=offers,
+                load=zones[ZonesOutput.load].sum(),
+            )
+            offer_stack_chart: alt.LayerChart = offer_stack.plot(
+                color_field=OffersOutput.zone
+            ).interactive()
+
+            return pn.Tabs(
+                (
+                    "By Zone",
+                    pn.Row(
+                        labeled(pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"),
+                        labeled(
+                            pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"
+                        ),
+                    ),
+                ),
+                (
+                    "Ideal Aggregate",
+                    pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height"),
+                ),
+            )
 
         return pn.Tabs(
             (
                 TAB_GRAPHICAL,
-                pn.Tabs(
-                    (
-                        "By Zone",
-                        pn.Row(
-                            labeled(
-                                pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"
-                            ),
-                            labeled(
-                                pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"
-                            ),
-                        ),
-                    ),
-                    (
-                        "Ideal Aggregate",
-                        pn.pane.Vega(offer_stack_chart, sizing_mode="stretch_height"),
-                    ),
+                pn.bind(
+                    _refresh,
+                    offers_in=self.param.offers,
+                    zones_in=self.param.zones,
+                    pricer=self.param.pricer,
+                    # watch=True,
                 ),
             ),
             (
@@ -697,6 +725,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def zones_panel(self) -> pn.viewable.Viewable:
+        print("  LmpDashboard.zones_panel")
         field_select = pn.widgets.Select(
             options=[
                 ZonesOutput.price,
@@ -713,7 +742,10 @@ class LmpDashboard(pm.Parameterized):
                     field_select,
                     pn.pane.Vega(
                         pn.bind(
-                            make_bar_chart,
+                            functools.partial(
+                                make_bar_chart,
+                                caller="    LmpDashboard.zones_panel",
+                            ),
                             dataframe=self.param.zones,
                             field_color=ZonesOutput.name,
                             field_x=ZonesOutput.name,
@@ -751,6 +783,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def __panel__(self) -> pn.viewable.Viewable:
+        print("LmpDashboard.__panel__")
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(

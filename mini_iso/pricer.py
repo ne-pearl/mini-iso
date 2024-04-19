@@ -142,13 +142,16 @@ class LmpPricer(pn.viewable.Viewer):
             offers_dispatched = solution.offers[OffersDispatched.quantity_dispatched]
             zones_price = solution.zones[ZonesPrice.price]
 
-        self.lines_flow = pd.DataFrame(lines_flow, index=self.lines.index)
-        self.offers_dispatched = pd.DataFrame(
-            # reset multi-index employed in solve routine
-            offers_dispatched.reset_index(),
-            index=self.offers.index,
+        # param.parameterized.update batches events associated with the update
+        self.param.update(
+            lines_flow=pd.DataFrame(lines_flow, index=self.lines.index),
+            offers_dispatched=pd.DataFrame(
+                # reset multi-index employed in solve routine
+                offers_dispatched.reset_index(),
+                index=self.offers.index,
+            ),
+            zones_price=pd.DataFrame(zones_price, index=self.zones.index),
         )
-        self.zones_price = pd.DataFrame(zones_price, index=self.zones.index)
 
         _validate_outputs(
             lines_flow=self.lines_flow,
