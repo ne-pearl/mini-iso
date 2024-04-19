@@ -1,0 +1,4 @@
+name,zone,capacity,cost
+G1,Bus1,100,5
+G2,Bus1,100,15
+G3,Bus1,100,25
