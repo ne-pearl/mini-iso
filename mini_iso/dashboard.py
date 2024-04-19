@@ -1,3 +1,4 @@
+import collections
 import functools
 from typing import Final
 import altair as alt
@@ -342,16 +343,22 @@ class LmpDashboard(pm.Parameterized):
             color_field_zones: str,
         ) -> alt.Chart:
 
-            circle_radius: Final[float] = 20.0
-            format_strings: Final[dict[str, str]] = {
-                GeneratorsOutput.utilization: ".0%",
-                LinesOutput.utilization: ".0%",
-                ZonesOutput.utilization: ".0%",
-            }
-
             # Default font size is 11
             # https://altair-viz.github.io/user_guide/marks/text.html
-            font_size: Final[dict] = alt.value(11)
+            font_size: Final[dict] = alt.value(14)
+            dy: Final[int] = 8
+            circle_radius: Final[float] = 30.0
+            format_strings: Final[dict[str, str]] = collections.defaultdict(
+                # default format: "Currency"
+                lambda: ".0f",
+                # Specific overrides
+                {
+                    GeneratorsOutput.utilization: ".0%",
+                    LinesOutput.is_critical: ".0",
+                    LinesOutput.utilization: ".0%",
+                    ZonesOutput.utilization: ".0%",
+                },
+            )
 
             generators_chart = alt.Chart(dataframe_generators)
             lines_chart = alt.Chart(dataframe_lines)
@@ -406,7 +413,8 @@ class LmpDashboard(pm.Parameterized):
                 size=font_size,
                 text=alt.Text(
                     color_field_lines,
-                    format=format_strings.get(color_field_lines, ".0f"),
+                    format=format_strings[color_field_lines],
+                    formatType="number",
                 ),
             )
 
@@ -433,11 +441,26 @@ class LmpDashboard(pm.Parameterized):
                 align="center",
                 baseline="middle",
                 dx=0,
-                dy=0,
+                dy=-dy,  # negative means "upwards"
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
                 text=alt.Text(ZonesOutput.name),
+            )
+
+            zones_data_plot = zones_plot.mark_text(
+                align="center",
+                baseline="middle",
+                dx=0,
+                dy=+dy,  # positive means "downwards"
+            ).encode(
+                color=alt.value("black"),
+                size=font_size,
+                text=alt.Text(
+                    color_field_zones,
+                    format=format_strings[color_field_zones],
+                    formatType="number",
+                ),
             )
 
             generators_line_plot = (
@@ -486,7 +509,8 @@ class LmpDashboard(pm.Parameterized):
                 size=font_size,
                 text=alt.Text(
                     color_field_generators,
-                    format=format_strings.get(color_field_generators, ".0f"),
+                    format=format_strings[color_field_generators],
+                    formatType="number",
                 ),
             )
 
@@ -533,6 +557,7 @@ class LmpDashboard(pm.Parameterized):
                     zones_line_label_plot,
                     zones_line_midpoint_plot,
                     zones_name_plot,
+                    zones_data_plot,
                 )
                 .resolve_scale(color="independent")
                 .configure_axis(disable=True, grid=False, domain=False)
