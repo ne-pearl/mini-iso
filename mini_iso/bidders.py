@@ -41,15 +41,10 @@ class Bidder(pn.viewable.Viewer):
     capacity = pm.Number(label="Capacity")
     cost = pm.Number(label="Marginal Cost")
     zone = pm.String(label="Zone")
-    zones_price = pm.DataFrame(label="Zone Prices", allow_refs=True, instantiate=False)
     summary = pm.DataFrame(label="Summary")
 
     def __init__(self, auction: Auction, **params):
-        super().__init__(
-            **params,
-            auction=auction,
-            zones_price=auction.param.zones_price,  # direct link
-        )
+        super().__init__(**params, auction=auction)
         names: list[str] = sorted(auction.offers_pending[Offers.generator].unique())
         assert len(names) != 0
         self.param.generator_name.objects = names
@@ -67,12 +62,17 @@ class Bidder(pn.viewable.Viewer):
         self._update_summary()
 
     def _reset_rows(self) -> None:
-        # TODO: Should we roll back to previously submitted or -committed?
+
         rows: Series[np.bool] = self._rows()
+
+        # Updates from auction intemediary
+        # TODO: Should we roll back to previously submitted or -committed?
         self.offers_drafted = self.auction.offers_pending[rows]
         self.offers_pending = self.auction.offers_pending[rows]
         self.offers_committed = self.auction.offers_committed[rows]
-        self.offers_dispatched = self.auction.offers_dispatched[rows]
+
+        # Updates from underlying pricer
+        self.offers_dispatched = self.auction.pricer.offers_dispatched[rows]
         self.zone = self.auction.pricer.generators.at[
             self.generator_name,
             Generators.zone,
@@ -135,7 +135,7 @@ class Bidder(pn.viewable.Viewer):
                 Offers.price: OffersSummary.price_offered,
             }
         )
-        summary[OffersSummary.price_lmp] = self.zones_price.at[
+        summary[OffersSummary.price_lmp] = self.auction.pricer.zones_price.at[
             self.zone, ZonesPrice.price
         ]
         summary[OffersSummary.excess] = (
@@ -303,7 +303,7 @@ class Bidder(pn.viewable.Viewer):
                                 ),
                                 labeled(
                                     pn.widgets.Tabulator.from_param(
-                                        self.param.zones_price,
+                                        self.auction.pricer.param.zones_price,
                                         formatters={
                                             ZonesPrice.price: price_usd_per_mwh.formatter,
                                         },
