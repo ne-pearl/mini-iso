@@ -21,7 +21,6 @@ pn.extension(
     ],
     design="material",
     notifications=True,
-    sizing_mode="stretch_width",
 )
 # Enables loading indicator globally
 # https://panel.holoviz.org/how_to/param/examples/loading.html
