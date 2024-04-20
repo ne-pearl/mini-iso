@@ -17,6 +17,7 @@ from mini_iso.typing import (
 )
 from mini_iso.miscellaneous import (
     fraction_percentage,
+    labeled,
     payment_usd_per_h,
     price_usd_per_mwh,
     power_megawatts,
@@ -164,8 +165,13 @@ class Bidder(pn.viewable.Viewer):
     def __panel__(self) -> pn.viewable.Viewable:
         # FIXME: Breaks encapsulation
 
+        # For panel.widgets.indicators; default font is too large
         font_size: Final = 15
         font_sizes: Final = dict(font_size=str(font_size), title_size=str(font_size))
+
+        # Markdown header levels
+        level_upper: Final = 2
+        level_lower: Final = 3
 
         return pn.template.VanillaTemplate(
             main=[
@@ -179,7 +185,6 @@ class Bidder(pn.viewable.Viewer):
                             pn.widgets.StaticText.from_param(
                                 self.param.zone,
                                 disabled=True,
-                                font_size=font_size,
                             ),
                             pn.indicators.Number.from_param(
                                 self.param.capacity,
@@ -196,11 +201,38 @@ class Bidder(pn.viewable.Viewer):
                         ),
                     ),
                     pn.Row(
-                        pn.Column(
-                            pn.Card(
-                                pn.Column(
+                        labeled(
+                            pn.Column(
+                                labeled(
+                                    pn.Column(
+                                        pn.widgets.Tabulator.from_param(
+                                            self.param.offers_drafted,
+                                            formatters={
+                                                Offers.price: price_usd_per_mwh.formatter,
+                                                Offers.quantity: power_megawatts.formatter,
+                                            },
+                                            show_index=False,
+                                            text_align={
+                                                Offers.price: price_usd_per_mwh.align,
+                                                Offers.quantity: power_megawatts.align,
+                                            },
+                                        ),
+                                        pn.Row(
+                                            pn.widgets.Button.from_param(
+                                                self.param.submit
+                                            ),
+                                            pn.widgets.Button.from_param(
+                                                self.param.reset
+                                            ),
+                                        ),
+                                    ),
+                                    label="Draft Offers",
+                                    level=level_lower,
+                                ),
+                                labeled(
                                     pn.widgets.Tabulator.from_param(
-                                        self.param.offers_drafted,
+                                        self.param.offers_pending,
+                                        disabled=True,
                                         formatters={
                                             Offers.price: price_usd_per_mwh.formatter,
                                             Offers.quantity: power_megawatts.formatter,
@@ -211,63 +243,50 @@ class Bidder(pn.viewable.Viewer):
                                             Offers.quantity: power_megawatts.align,
                                         },
                                     ),
-                                    pn.Row(
-                                        pn.widgets.Button.from_param(self.param.submit),
-                                        pn.widgets.Button.from_param(self.param.reset),
-                                    ),
+                                    label="Submitted Offers",
+                                    level=level_lower,
                                 ),
-                                title="Draft Offers",
                             ),
-                            pn.Card(
-                                pn.widgets.Tabulator.from_param(
-                                    self.param.offers_pending,
-                                    disabled=True,
-                                    formatters={
-                                        Offers.price: price_usd_per_mwh.formatter,
-                                        Offers.quantity: power_megawatts.formatter,
-                                    },
-                                    show_index=False,
-                                    text_align={
-                                        Offers.price: price_usd_per_mwh.align,
-                                        Offers.quantity: power_megawatts.align,
-                                    },
-                                ),
-                                title="Submitted Offers",
-                            ),
+                            label="Next Auction",
+                            level=level_upper,
                         ),
-                        pn.Card(
+                        labeled(
                             pn.Column(
-                                pn.widgets.Tabulator.from_param(
-                                    self.param.summary,
-                                    formatters={
-                                        OffersSummary.excess: price_usd_per_mwh.formatter,
-                                        OffersSummary.price_lmp: price_usd_per_mwh.formatter,
-                                        OffersSummary.price_offered: price_usd_per_mwh.formatter,
-                                        OffersSummary.quantity_dispatched: power_megawatts.formatter,
-                                        OffersSummary.quantity_offered: power_megawatts.formatter,
-                                        OffersSummary.revenue: payment_usd_per_h.formatter,
-                                        OffersSummary.utilization: fraction_percentage.formatter,
-                                    },
-                                    disabled=True,
-                                    show_index=False,
-                                    text_align={
-                                        OffersSummary.excess: price_usd_per_mwh.align,
-                                        OffersSummary.price_lmp: price_usd_per_mwh.align,
-                                        OffersSummary.price_offered: price_usd_per_mwh.align,
-                                        OffersSummary.quantity_dispatched: power_megawatts.align,
-                                        OffersSummary.quantity_offered: power_megawatts.align,
-                                        OffersSummary.revenue: payment_usd_per_h.align,
-                                        OffersSummary.utilization: fraction_percentage.align,
-                                    },
-                                    titles={
-                                        OffersSummary.generator: "name",
-                                        OffersSummary.price_lmp: "LMP",
-                                        OffersSummary.price_offered: "offer",
-                                        OffersSummary.quantity_dispatched: "dispatched",
-                                        OffersSummary.quantity_offered: "offer",
-                                    },
+                                labeled(
+                                    pn.widgets.Tabulator.from_param(
+                                        self.param.summary,
+                                        formatters={
+                                            OffersSummary.excess: price_usd_per_mwh.formatter,
+                                            OffersSummary.price_lmp: price_usd_per_mwh.formatter,
+                                            OffersSummary.price_offered: price_usd_per_mwh.formatter,
+                                            OffersSummary.quantity_dispatched: power_megawatts.formatter,
+                                            OffersSummary.quantity_offered: power_megawatts.formatter,
+                                            OffersSummary.revenue: payment_usd_per_h.formatter,
+                                            OffersSummary.utilization: fraction_percentage.formatter,
+                                        },
+                                        disabled=True,
+                                        show_index=False,
+                                        text_align={
+                                            OffersSummary.excess: price_usd_per_mwh.align,
+                                            OffersSummary.price_lmp: price_usd_per_mwh.align,
+                                            OffersSummary.price_offered: price_usd_per_mwh.align,
+                                            OffersSummary.quantity_dispatched: power_megawatts.align,
+                                            OffersSummary.quantity_offered: power_megawatts.align,
+                                            OffersSummary.revenue: payment_usd_per_h.align,
+                                            OffersSummary.utilization: fraction_percentage.align,
+                                        },
+                                        titles={
+                                            OffersSummary.generator: "name",
+                                            OffersSummary.price_lmp: "LMP",
+                                            OffersSummary.price_offered: "offer",
+                                            OffersSummary.quantity_dispatched: "dispatched",
+                                            OffersSummary.quantity_offered: "offer",
+                                        },
+                                    ),
+                                    label="Generator Summary",
+                                    level=level_lower,
                                 ),
-                                pn.Card(
+                                labeled(
                                     pn.widgets.Tabulator.from_param(
                                         self.param.zones_price,
                                         formatters={
@@ -279,10 +298,12 @@ class Bidder(pn.viewable.Viewer):
                                             ZonesPrice.price: price_usd_per_mwh.align,
                                         },
                                     ),
-                                    title="Zone Prices",
+                                    label="Zone Prices",
+                                    level=level_lower,
                                 ),
                             ),
-                            title="Last Auction",
+                            label="Previous Auction",
+                            level=level_upper,
                         ),
                     ),
                 )
