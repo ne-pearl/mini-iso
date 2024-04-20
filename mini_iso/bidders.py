@@ -21,6 +21,9 @@ from mini_iso.miscellaneous import (
     payment_usd_per_h,
     price_usd_per_mwh,
     power_megawatts,
+    INDICATOR_FONT_SIZES,
+    MARKDOWN_LEVEL_UPPER,
+    MARKDOWN_LEVEL_LOWER,
 )
 from mini_iso.auction import Auction
 
@@ -163,16 +166,6 @@ class Bidder(pn.viewable.Viewer):
         self.summary = summary
 
     def __panel__(self) -> pn.viewable.Viewable:
-        # FIXME: Breaks encapsulation
-
-        # For panel.widgets.indicators; default font is too large
-        font_size: Final = 15
-        font_sizes: Final = dict(font_size=str(font_size), title_size=str(font_size))
-
-        # Markdown header levels
-        level_upper: Final = 2
-        level_lower: Final = 3
-
         return pn.template.VanillaTemplate(
             main=[
                 pn.Column(
@@ -190,13 +183,13 @@ class Bidder(pn.viewable.Viewer):
                                 self.param.capacity,
                                 disabled=True,
                                 format=f"{{value}}{power_megawatts.formatter['symbol']}",
-                                **font_sizes,
+                                **INDICATOR_FONT_SIZES,
                             ),
                             pn.indicators.Number.from_param(
                                 self.param.cost,
                                 disabled=True,
                                 format=f"{{value}}{price_usd_per_mwh.formatter['symbol']}",
-                                **font_sizes,
+                                **INDICATOR_FONT_SIZES,
                             ),
                         ),
                     ),
@@ -227,7 +220,7 @@ class Bidder(pn.viewable.Viewer):
                                         ),
                                     ),
                                     label="Draft Offers",
-                                    level=level_lower,
+                                    level=MARKDOWN_LEVEL_LOWER,
                                 ),
                                 labeled(
                                     pn.widgets.Tabulator.from_param(
@@ -244,11 +237,11 @@ class Bidder(pn.viewable.Viewer):
                                         },
                                     ),
                                     label="Submitted Offers",
-                                    level=level_lower,
+                                    level=MARKDOWN_LEVEL_LOWER,
                                 ),
                             ),
                             label="Next Auction",
-                            level=level_upper,
+                            level=MARKDOWN_LEVEL_UPPER,
                         ),
                         labeled(
                             pn.Column(
@@ -284,7 +277,7 @@ class Bidder(pn.viewable.Viewer):
                                         },
                                     ),
                                     label="Generator Summary",
-                                    level=level_lower,
+                                    level=MARKDOWN_LEVEL_LOWER,
                                 ),
                                 labeled(
                                     pn.widgets.Tabulator.from_param(
@@ -299,11 +292,11 @@ class Bidder(pn.viewable.Viewer):
                                         },
                                     ),
                                     label="Zone Prices",
-                                    level=level_lower,
+                                    level=MARKDOWN_LEVEL_LOWER,
                                 ),
                             ),
                             label="Previous Auction",
-                            level=level_upper,
+                            level=MARKDOWN_LEVEL_UPPER,
                         ),
                     ),
                 )

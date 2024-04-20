@@ -23,6 +23,17 @@ assert DATASETS_ROOT_PATH.is_dir()
 # Tolerance for detection of binding constraints
 BIND_TOL: Final[float] = 1.0 / 100.0
 
+# For panel.widgets.indicators; default font is too large
+FONT_SIZE: Final = 15
+INDICATOR_FONT_SIZES: Final[dict[str, str]] = dict(
+    font_size=str(FONT_SIZE),
+    title_size=str(FONT_SIZE),
+)
+
+# Markdown header levels
+MARKDOWN_LEVEL_UPPER: Final = 2
+MARKDOWN_LEVEL_LOWER: Final = 3
+
 
 def digits_key(text: str) -> float:
     """A sort key for strings with embedded numbers."""
