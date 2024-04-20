@@ -156,7 +156,7 @@ class Bidder(pn.viewable.Viewer):
         # Insert totals in bottom row
         next: int = summary.index.values.max() + 1
         with warnings.catch_warnings():
-            # FIXME: 
+            # FIXME:
             # "FutureWarning: Setting an item of incompatible dtype
             # is deprecated and will raise an error in a future version
             # of pandas. Value '' has dtype incompatible with float64,
@@ -256,6 +256,13 @@ class Bidder(pn.viewable.Viewer):
                         ),
                         labeled(
                             pn.Column(
+                                labeled(
+                                    pn.widgets.StaticText.from_param(
+                                        self.auction.pricer.param.status
+                                    ),
+                                    label="Clearance Status",
+                                    level=MARKDOWN_LEVEL_LOWER,
+                                ),
                                 labeled(
                                     pn.widgets.Tabulator.from_param(
                                         self.param.summary,
