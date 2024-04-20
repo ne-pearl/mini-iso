@@ -8,6 +8,7 @@ from mini_iso.typing import (
     ZonesPrice,
 )
 from mini_iso.miscellaneous import (
+    labeled,
     price_usd_per_mwh,
     power_megawatts,
     tabulator_item,
@@ -61,7 +62,7 @@ class Auction(pn.viewable.Viewer):
         return pn.template.VanillaTemplate(
             main=[
                 pn.Row(
-                    pn.Card(
+                    labeled(
                         pn.Column(
                             pn.Row(
                                 pn.widgets.Button.from_param(self.param.submit),
@@ -80,9 +81,9 @@ class Auction(pn.viewable.Viewer):
                                 },
                             ),
                         ),
-                        title="Offers",
+                        label="Offers",
                     ),
-                    pn.Card(
+                    labeled(
                         pn.Tabs(
                             tabulator_item(
                                 self.param.offers_committed,
@@ -125,7 +126,7 @@ class Auction(pn.viewable.Viewer):
                                 },
                             ),
                         ),
-                        title="Results",
+                        label="Results",
                     ),
                 )
             ],
