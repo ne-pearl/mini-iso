@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Final
+import warnings
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
@@ -154,7 +155,17 @@ class Bidder(pn.viewable.Viewer):
         revenue_total: PaymentUSDPerH = summary[OffersSummary.revenue].sum()
         # Insert totals in bottom row
         next: int = summary.index.values.max() + 1
-        summary.loc[next, :] = ""
+        with warnings.catch_warnings():
+            # FIXME: 
+            # "FutureWarning: Setting an item of incompatible dtype
+            # is deprecated and will raise an error in a future version
+            # of pandas. Value '' has dtype incompatible with float64,
+            # please explicitly cast to a compatible dtype first."
+            # Unfortunately, Tabulator doesn't currently seem to have
+            # something like NumberFormatter.nan_format:
+            # https://docs.bokeh.org/en/latest/docs/reference/models/widgets/tables.html#bokeh.models.NumberFormatter.nan_format
+            warnings.simplefilter("ignore", category=FutureWarning)
+            summary.loc[next, :] = ""
         summary.loc[next, OffersSummary.tranche] = "TOTAL"
         summary.loc[next, OffersSummary.quantity_offered] = offered_total
         summary.loc[next, OffersSummary.quantity_dispatched] = dispatched_total
@@ -182,13 +193,13 @@ class Bidder(pn.viewable.Viewer):
                             pn.indicators.Number.from_param(
                                 self.param.capacity,
                                 disabled=True,
-                                format=f"{{value}}{power_megawatts.formatter['symbol']}",
+                                format=f"{{value:.0f}}{power_megawatts.formatter['symbol']}",
                                 **INDICATOR_FONT_SIZES,
                             ),
                             pn.indicators.Number.from_param(
                                 self.param.cost,
                                 disabled=True,
-                                format=f"{{value}}{price_usd_per_mwh.formatter['symbol']}",
+                                format=f"{{value:.0f}}{price_usd_per_mwh.formatter['symbol']}",
                                 **INDICATOR_FONT_SIZES,
                             ),
                         ),
