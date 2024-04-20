@@ -34,6 +34,7 @@ from mini_iso.typing import (
 )
 from mini_iso.miscellaneous import (
     BIND_TOL,
+    INDICATOR_FONT_SIZES,
     admittance_siemens,
     boolean_check,
     fraction_percentage,
@@ -932,11 +933,22 @@ class LmpDashboard(pm.Parameterized):
         return pn.template.VanillaTemplate(
             main=[
                 labeled(
-                    pn.Tabs(
-                        ("Lines", self.network_panel()),
-                        ("Generators", self.generators_panel()),
-                        ("Offers", self.offers_panel()),
-                        ("Zones", self.zones_panel()),
+                    pn.Column(
+                        pn.Row(
+                            pn.widgets.StaticText.from_param(self.pricer.param.status),
+                            pn.indicators.Number.from_param(
+                                self.pricer.param.objective,
+                                disabled=True,
+                                format=f"{{value:.0f}}{payment_usd_per_h.formatter['symbol']}",
+                                **INDICATOR_FONT_SIZES,
+                            ),
+                        ),
+                        pn.Tabs(
+                            ("Lines", self.network_panel()),
+                            ("Generators", self.generators_panel()),
+                            ("Offers", self.offers_panel()),
+                            ("Zones", self.zones_panel()),
+                        ),
                     ),
                     label="Outputs",
                 ),

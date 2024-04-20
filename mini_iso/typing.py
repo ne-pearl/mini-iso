@@ -356,6 +356,7 @@ class ZonesSolution(DataFrameModel):
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Solution:
+    objective: PaymentUSDPerH
     lines: DataFrame[LinesSolution]
     offers: DataFrame[OffersSolution]
     zones: DataFrame[ZonesSolution]

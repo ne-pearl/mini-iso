@@ -1,4 +1,5 @@
 from __future__ import annotations
+import numpy as np
 import pandas as pd
 from pandera.typing import DataFrame
 import panel as pn
@@ -17,10 +18,12 @@ from mini_iso.typing import (
     ZonesPrice,
 )
 from mini_iso.miscellaneous import (
+    INDICATOR_FONT_SIZES,
     tabulator_item,
     admittance_siemens,
-    price_usd_per_mwh,
+    payment_usd_per_h,
     power_megawatts,
+    price_usd_per_mwh,
 )
 
 
@@ -57,6 +60,8 @@ class LmpPricer(pn.viewable.Viewer):
     lines_flow = pm.DataFrame(label="Line Flows")
     offers_dispatched = pm.DataFrame(label="Offer Dispatch")
     zones_price = pm.DataFrame(label="Zone Prices")
+    status = pm.String(label="Status")
+    objective = pm.Number(label="Objective Value")
 
     def __init__(
         self,
@@ -151,6 +156,8 @@ class LmpPricer(pn.viewable.Viewer):
                 index=self.offers.index,
             ),
             zones_price=pd.DataFrame(zones_price, index=self.zones.index),
+            status=status.name,
+            objective=np.nan if solution is None else solution.objective,
         )
 
         _validate_outputs(
@@ -234,28 +241,39 @@ class LmpPricer(pn.viewable.Viewer):
         )
 
     def outputs_panel(self) -> pn.Column:
-        return pn.Tabs(
-            tabulator_item(
-                self.param.lines_flow,
-                name=self.param.lines.label,
-                formatters={LinesFlow.quantity: power_megawatts.formatter},
-                text_align={LinesFlow.quantity: power_megawatts.align},
+        return pn.Column(
+            pn.Row(
+                pn.widgets.StaticText.from_param(self.param.status),
+                pn.indicators.Number.from_param(
+                    self.param.objective,
+                    disabled=True,
+                    format=f"{{value:.0f}}{payment_usd_per_h.formatter['symbol']}",
+                    **INDICATOR_FONT_SIZES,
+                ),
             ),
-            tabulator_item(
-                self.param.offers_dispatched,
-                name=self.param.offers.label,
-                formatters={
-                    OffersDispatched.quantity_dispatched: power_megawatts.formatter
-                },
-                text_align={
-                    OffersDispatched.quantity_dispatched: power_megawatts.align
-                },
-            ),
-            tabulator_item(
-                self.param.zones_price,
-                name=self.param.zones.label,
-                formatters={ZonesPrice.price: price_usd_per_mwh.formatter},
-                text_align={ZonesPrice.price: price_usd_per_mwh.align},
+            pn.Tabs(
+                tabulator_item(
+                    self.param.lines_flow,
+                    name=self.param.lines.label,
+                    formatters={LinesFlow.quantity: power_megawatts.formatter},
+                    text_align={LinesFlow.quantity: power_megawatts.align},
+                ),
+                tabulator_item(
+                    self.param.offers_dispatched,
+                    name=self.param.offers.label,
+                    formatters={
+                        OffersDispatched.quantity_dispatched: power_megawatts.formatter
+                    },
+                    text_align={
+                        OffersDispatched.quantity_dispatched: power_megawatts.align
+                    },
+                ),
+                tabulator_item(
+                    self.param.zones_price,
+                    name=self.param.zones.label,
+                    formatters={ZonesPrice.price: price_usd_per_mwh.formatter},
+                    text_align={ZonesPrice.price: price_usd_per_mwh.align},
+                ),
             ),
         )
 

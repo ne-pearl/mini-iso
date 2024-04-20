@@ -249,6 +249,7 @@ def clear_auction(
     offers_solution: DataFrame = align(inputs.offers, dispatched)
 
     return status, Solution(
+        objective=model.ObjVal,
         lines=DataFrame[LinesSolution](lines_solution),
         zones=DataFrame[ZonesSolution](zones_solution),
         offers=DataFrame[OffersSolution](offers_solution),
