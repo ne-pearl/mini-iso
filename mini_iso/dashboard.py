@@ -559,27 +559,27 @@ class LmpDashboard(pm.Parameterized):
                 # .properties(height=400)
             )
 
-            generators_line_midpoint_plot = generators_chart.mark_point().encode(
-                x=alt.X(GeneratorsOutput.x_mid),
-                y=alt.Y(GeneratorsOutput.y_mid),
-                color=alt.Color(color_field_generators, legend=None),
-                size=alt.value(10),
-            )
-
-            generators_line_label_plot = generators_line_midpoint_plot.mark_text(
-                align="center",
-                baseline="middle",
-                dx=0,
-                dy=0,
-            ).encode(
-                color=alt.value("black"),
-                size=font_size,
-                text=alt.Text(
-                    color_field_generators,
-                    format=format_strings[color_field_generators],
-                    formatType="number",
-                ),
-            )
+            # generators_line_midpoint_plot = generators_chart.mark_point().encode(
+            #     x=alt.X(GeneratorsOutput.x_mid),
+            #     y=alt.Y(GeneratorsOutput.y_mid),
+            #     color=alt.Color(color_field_generators, legend=None),
+            #     size=alt.value(10),
+            # )
+            #
+            # generators_line_label_plot = generators_line_midpoint_plot.mark_text(
+            #     align="center",
+            #     baseline="middle",
+            #     dx=0,
+            #     dy=0,
+            # ).encode(
+            #     color=alt.value("black"),
+            #     size=font_size,
+            #     text=alt.Text(
+            #         color_field_generators,
+            #         format=format_strings[color_field_generators],
+            #         formatType="number",
+            #     ),
+            # )
 
             generators_plot = (
                 generators_chart.mark_circle()
@@ -602,27 +602,41 @@ class LmpDashboard(pm.Parameterized):
                 align="center",
                 baseline="middle",
                 dx=0,
-                dy=0,
+                dy=-dy,  # negative means "upwards"
             ).encode(
                 color=alt.value("black"),
                 size=font_size,
                 text=alt.Text(GeneratorsOutput.name),
             )
 
+            generators_data_plot = generators_plot.mark_text(
+                align="center",
+                baseline="middle",
+                dx=0,
+                dy=+dy,  # positive means "downwards"
+            ).encode(
+                color=alt.value("black"),
+                size=font_size,
+                text=alt.Text(
+                    color_field_generators,
+                    format=format_strings[color_field_generators],
+                    formatType="number",
+                ),
+            )
+
             return (
                 alt.layer(
-                    # Lower layers: Lines
+                    # -- Lower layers: Lines --
                     zones_line_plot,
                     generators_line_plot,
-                    # Middle layers: Nodes
+                    # -- Middle layers: Nodes --
                     zones_plot,
                     generators_plot,
-                    # Upper layers: Text
-                    generators_line_label_plot,
-                    generators_line_midpoint_plot,
+                    # -- Upper layers: Text --
+                    # generators_line_label_plot,
                     generators_name_plot,
+                    generators_data_plot,
                     zones_line_label_plot,
-                    zones_line_midpoint_plot,
                     zones_name_plot,
                     zones_data_plot,
                 )
@@ -836,8 +850,7 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.revenue: payment_usd_per_h.align,
                     },
                     titles={
-                        OffersOutput.generator: "gen",
-                        OffersOutput.tranche: "tr",
+                        OffersOutput.generator: "name",
                         OffersOutput.price: "offer",
                         OffersOutput.quantity: "offer",
                         OffersOutput.quantity_dispatched: "dispatched",

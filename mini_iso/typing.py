@@ -140,6 +140,7 @@ class OffersSummary(DataFrameModel):
     price_offered: Series[PriceUSDPerMWh] = _float_field()
     price_lmp: Series[PriceUSDPerMWh] = _float_field()
     excess: Series[PriceUSDPerMWh] = _float_field()
+    revenue: Series[PaymentUSDPerH] = _float_field()
 
 
 class Zones(DataFrameModel):

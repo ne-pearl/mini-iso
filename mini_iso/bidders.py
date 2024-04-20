@@ -2,7 +2,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
-from pandera.typing import DataFrame, Series
+from pandera.typing import Series
 import panel as pn
 import param as pm
 from mini_iso.typing import (
@@ -10,10 +10,13 @@ from mini_iso.typing import (
     Generators,
     Offers,
     OffersSummary,
+    PaymentUSDPerH,
+    PowerMW,
     ZonesPrice,
 )
 from mini_iso.miscellaneous import (
     fraction_percentage,
+    payment_usd_per_h,
     price_usd_per_mwh,
     power_megawatts,
 )
@@ -127,19 +130,30 @@ class Bidder(pn.viewable.Viewer):
             summary[OffersSummary.quantity_dispatched]
             / summary[OffersSummary.quantity_offered]
         ).fillna(0.0)
-        self.summary = DataFrame[OffersSummary](summary).reset_index()[
-            [
-                # Reorder columns
-                OffersSummary.generator,
-                OffersSummary.tranche,
-                OffersSummary.quantity_offered,
-                OffersSummary.quantity_dispatched,
-                OffersSummary.utilization,
-                OffersSummary.price_offered,
-                OffersSummary.price_lmp,
-                OffersSummary.excess,
-            ]
-        ]
+        summary[OffersSummary.revenue] = (
+            summary[OffersSummary.price_lmp]
+            * summary[OffersSummary.quantity_dispatched]
+        )
+
+        OffersSummary.validate(summary)
+
+        # Add totals
+        summary.reset_index(inplace=True)
+        offered_total: PowerMW = summary[OffersSummary.quantity_offered].sum()
+        dispatched_total: PowerMW = summary[OffersSummary.quantity_dispatched].sum()
+        revenue_total: PaymentUSDPerH = summary[OffersSummary.revenue].sum()
+        # Insert totals in bottom row
+        next: int = summary.index.values.max() + 1
+        summary.loc[next, :] = ""
+        summary.loc[next, OffersSummary.tranche] = "TOTAL"
+        summary.loc[next, OffersSummary.quantity_offered] = offered_total
+        summary.loc[next, OffersSummary.quantity_dispatched] = dispatched_total
+        summary.loc[next, OffersSummary.utilization] = (
+            dispatched_total / offered_total if offered_total != 0.0 else 0.0
+        )
+        summary.loc[next, OffersSummary.revenue] = revenue_total
+
+        self.summary = summary
 
     def __panel__(self) -> pn.viewable.Viewable:
         # FIXME: Breaks encapsulation
@@ -198,21 +212,31 @@ class Bidder(pn.viewable.Viewer):
                                 pn.widgets.Tabulator.from_param(
                                     self.param.summary,
                                     formatters={
+                                        OffersSummary.excess: price_usd_per_mwh.formatter,
                                         OffersSummary.price_lmp: price_usd_per_mwh.formatter,
                                         OffersSummary.price_offered: price_usd_per_mwh.formatter,
-                                        OffersSummary.excess: price_usd_per_mwh.formatter,
                                         OffersSummary.quantity_dispatched: power_megawatts.formatter,
                                         OffersSummary.quantity_offered: power_megawatts.formatter,
+                                        OffersSummary.revenue: payment_usd_per_h.formatter,
                                         OffersSummary.utilization: fraction_percentage.formatter,
                                     },
+                                    frozen=True,
                                     show_index=False,
                                     text_align={
+                                        OffersSummary.excess: price_usd_per_mwh.align,
                                         OffersSummary.price_lmp: price_usd_per_mwh.align,
                                         OffersSummary.price_offered: price_usd_per_mwh.align,
-                                        OffersSummary.excess: price_usd_per_mwh.align,
                                         OffersSummary.quantity_dispatched: power_megawatts.align,
                                         OffersSummary.quantity_offered: power_megawatts.align,
+                                        OffersSummary.revenue: payment_usd_per_h.align,
                                         OffersSummary.utilization: fraction_percentage.align,
+                                    },
+                                    titles={
+                                        OffersSummary.generator: "name",
+                                        OffersSummary.price_lmp: "LMP",
+                                        OffersSummary.price_offered: "offer",
+                                        OffersSummary.quantity_dispatched: "dispatched",
+                                        OffersSummary.quantity_offered: "offer",
                                     },
                                 ),
                                 pn.Card(
