@@ -825,7 +825,9 @@ class LmpDashboard(pm.Parameterized):
                         OffersOutput.nodal_price: price_usd_per_mwh.formatter,
                         OffersOutput.revenue: payment_usd_per_h.formatter,
                     },
-                    hidden_columns=[],
+                    hidden_columns=[
+                        OffersOutput.zone,
+                    ],
                     show_index=False,
                     text_align={
                         OffersOutput.price: price_usd_per_mwh.align,
