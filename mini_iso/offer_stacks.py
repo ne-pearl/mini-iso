@@ -48,8 +48,10 @@ class OfferStack(DataFrameModel):
 
     generator: Series[str]
     tranche: Series[str]
+    capacity: Series[PowerMW] = Field(coerce=True)  # for tooltip only
     capacity_left: Series[PowerMW] = Field(coerce=True)
     capacity_right: Series[PowerMW] = Field(coerce=True)
+    dispatched: Series[PowerMW] = Field(coerce=True)  # for tooltip only
     dispatched_left: Series[PowerMW] = Field(coerce=True)
     dispatched_right: Series[PowerMW] = Field(coerce=True)
     price_lower: Series[PriceUSDPerMWh] = Field(coerce=True)
@@ -62,11 +64,12 @@ class OfferStack(DataFrameModel):
 class Intervals:
     left: NDArray[np.float]
     right: NDArray[np.float]
+    width: NDArray[np.float]
 
     @classmethod
-    def init(cls, x: NDArray[np.float], x0: np.float) -> Intervals:
-        cx: NDArray[np.double] = np.cumsum(np.insert(x, 0, values=x0))
-        return cls(left=cx[:-1], right=cx[1:])
+    def init(cls, width: NDArray[np.float], start: np.float) -> Intervals:
+        cx: NDArray[np.double] = np.cumsum(np.insert(width, 0, values=start))
+        return cls(left=cx[:-1], right=cx[1:], width=width)
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -112,6 +115,9 @@ class Clearance:
                     OfferStack.generator,
                     OfferStack.tranche,
                     OfferStack.status,
+                    OfferStack.capacity,
+                    OfferStack.dispatched,
+                    OfferStack.utilization,
                 ],
             )
             + aggregate_chart.mark_rule(color=aggregate_load_color).encode(
@@ -217,17 +223,21 @@ class Clearance:
             assert 0.0 <= quantity_exported
 
             capacity_pair = Intervals.init(
-                stack[Offers.quantity].values, -quantity_exported
+                width=stack[Offers.quantity].values,
+                start=-quantity_exported,
             )
             dispatched_pair = Intervals.init(
-                stack[OffersDispatched.quantity_dispatched].values, -quantity_exported
+                width=stack[OffersDispatched.quantity_dispatched].values,
+                start=-quantity_exported,
             )
             temporary: pd.DataFrame = stack.apply(
                 get_utilization, axis=1, result_type="expand"
             )
 
+            stack[OfferStack.capacity] = capacity_pair.width
             stack[OfferStack.capacity_left] = capacity_pair.left
             stack[OfferStack.capacity_right] = capacity_pair.right
+            stack[OfferStack.dispatched] = dispatched_pair.width
             stack[OfferStack.dispatched_left] = dispatched_pair.left
             stack[OfferStack.dispatched_right] = dispatched_pair.right
             stack[OfferStack.price_lower] = 0.0
