@@ -369,6 +369,7 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.generators,
+                    disabled=True,
                     formatters={
                         GeneratorsOutput.capacity: power_megawatts.formatter,
                         GeneratorsOutput.dispatched: power_megawatts.formatter,
@@ -708,6 +709,7 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.lines,
+                    disabled=True,
                     formatters={
                         LinesOutput.susceptance: admittance_siemens.formatter,
                         LinesOutput.quantity: power_megawatts.formatter,
@@ -827,6 +829,7 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.offers,
+                    disabled=True,
                     formatters={
                         OffersOutput.price: price_usd_per_mwh.formatter,
                         OffersOutput.quantity: power_megawatts.formatter,
@@ -896,6 +899,7 @@ class LmpDashboard(pm.Parameterized):
                 TAB_TABULAR,
                 pn.widgets.Tabulator.from_param(
                     self.param.zones,
+                    disabled=True,
                     formatters={
                         ZonesOutput.price: price_usd_per_mwh.formatter,
                         ZonesOutput.load: power_megawatts.formatter,
