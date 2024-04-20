@@ -3,18 +3,12 @@ import argparse
 import logging
 from pathlib import Path
 import sys
-from typing import Final
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
 from mini_iso.dashboard import LmpPricer, LmpDashboard
+from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
 from mini_iso.typing import Input
-
-ADDRESS: Final[str] = "*"
-PORT: Final[int] = 5000
-DATASETS_PATH: Final[Path] = Path(__file__).parent / "datasets"
-assert DATASETS_PATH.exists()
-assert DATASETS_PATH.is_dir()
 
 # panel configuration
 pn.extension(
@@ -40,7 +34,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 @pn.cache
 def load_auction(case_path: Path) -> Auction:
     """This function's body is evaluated exactly once."""
-    inputs: Input = Input.from_json(DATASETS_PATH / case_path)
+    inputs: Input = Input.from_json(DATASETS_ROOT_PATH / case_path)
     pricer: LmpPricer = LmpPricer.from_inputs(inputs)
     return Auction(pricer)
 

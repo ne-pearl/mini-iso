@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from pathlib import Path
 import re
 from typing import Final, Literal
 from bokeh.models.widgets.tables import (
@@ -12,6 +13,12 @@ import pandas as pd
 import panel as pn
 import param as pm
 from panel.widgets import Tabulator
+
+ADDRESS: Final[str] = "*"
+PORT: Final[int] = 5000
+DATASETS_ROOT_PATH: Final[Path] = Path(__file__).parent.parent
+assert DATASETS_ROOT_PATH.exists()
+assert DATASETS_ROOT_PATH.is_dir()
 
 # Tolerance for detection of binding constraints
 BIND_TOL: Final[float] = 1.0 / 100.0

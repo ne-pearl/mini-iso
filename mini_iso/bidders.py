@@ -12,7 +12,7 @@ from mini_iso.typing import (
     OffersSummary,
     ZonesPrice,
 )
-from mini_iso.panel_helpers import (
+from mini_iso.miscellaneous import (
     fraction_percentage,
     price_usd_per_mwh,
     power_megawatts,

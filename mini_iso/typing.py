@@ -213,7 +213,6 @@ class Input:
         self._layout_network()
 
     def _layout_network(self) -> None:
-
         # See `weight` in networkx.spring_layout()
         # https://networkx.org/documentation/stable/reference/generated/networkx.drawing.layout.spring_layout.html
         line_weight_key: Final[str] = "weight"

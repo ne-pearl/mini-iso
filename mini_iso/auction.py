@@ -7,7 +7,7 @@ from mini_iso.typing import (
     OffersDispatched,
     ZonesPrice,
 )
-from mini_iso.panel_helpers import (
+from mini_iso.miscellaneous import (
     price_usd_per_mwh,
     power_megawatts,
     tabulator_item,

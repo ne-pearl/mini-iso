@@ -16,7 +16,7 @@ from mini_iso.typing import (
     Zones,
     ZonesPrice,
 )
-from mini_iso.panel_helpers import (
+from mini_iso.miscellaneous import (
     tabulator_item,
     admittance_siemens,
     price_usd_per_mwh,

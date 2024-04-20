@@ -9,7 +9,7 @@ import panel as pn
 import param as pm
 from mini_iso.offer_stacks import Clearance
 from mini_iso.offer_stacks_ideal import OfferStack
-from mini_iso.panel_helpers import labeled
+from mini_iso.miscellaneous import labeled
 from mini_iso.pricer import LmpPricer
 from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
@@ -32,7 +32,7 @@ from mini_iso.typing import (
     ZonesPrice,
     ZonesOutput,
 )
-from mini_iso.panel_helpers import (
+from mini_iso.miscellaneous import (
     BIND_TOL,
     admittance_siemens,
     boolean_check,
@@ -395,7 +395,6 @@ class LmpDashboard(pm.Parameterized):
                     titles={
                         GeneratorsOutput.nodal_price: "LMP",
                     },
-
                 ),
             ),
         )
@@ -411,7 +410,6 @@ class LmpDashboard(pm.Parameterized):
             color_field_lines: str,
             color_field_zones: str,
         ) -> alt.Chart:
-
             # Default font size is 11
             # https://altair-viz.github.io/user_guide/marks/text.html
             font_size: Final[dict] = alt.value(14)
@@ -752,7 +750,6 @@ class LmpDashboard(pm.Parameterized):
         print("  LmpDashboard.offers_panel")
 
         def _refresh(offers_in: DataFrame, zones_in: DataFrame, pricer: LmpPricer):
-
             offers: DataFrame[OffersOutput] = offers_in.set_index(OFFERS_INDEX_LABELS)
             zones: DataFrame[ZonesOutput] = zones_in.set_index(Zones.name)
 
