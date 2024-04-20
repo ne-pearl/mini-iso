@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Final
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
@@ -32,6 +33,7 @@ class Bidder(pn.viewable.Viewer):
     offers_dispatched = pm.DataFrame(label="Offers Dispatched")
     submit = pm.Event(label="Submit")
     reset = pm.Event(label="Reset")
+    capacity = pm.Number(label="Capacity")
     cost = pm.Number(label="Marginal Cost")
     zone = pm.String(label="Zone")
     zones_price = pm.DataFrame(label="Zone Prices", allow_refs=True, instantiate=False)
@@ -69,6 +71,10 @@ class Bidder(pn.viewable.Viewer):
         self.cost = self.auction.pricer.generators.at[
             self.generator_name,
             Generators.cost,
+        ]
+        self.capacity = self.auction.pricer.generators.at[
+            self.generator_name,
+            Generators.capacity,
         ]
         self._update_summary()
 
@@ -158,15 +164,37 @@ class Bidder(pn.viewable.Viewer):
     def __panel__(self) -> pn.viewable.Viewable:
         # FIXME: Breaks encapsulation
 
+        font_size: Final = 15
+        font_sizes: Final = dict(font_size=str(font_size), title_size=str(font_size))
+
         return pn.template.VanillaTemplate(
             main=[
                 pn.Column(
-                    pn.widgets.Select.from_param(
-                        self.param.generator_name,
-                        name="Generator",
+                    pn.Column(
+                        pn.widgets.Select.from_param(
+                            self.param.generator_name,
+                            name="Generator",
+                        ),
+                        pn.Row(
+                            pn.widgets.StaticText.from_param(
+                                self.param.zone,
+                                disabled=True,
+                                font_size=font_size,
+                            ),
+                            pn.indicators.Number.from_param(
+                                self.param.capacity,
+                                disabled=True,
+                                format=f"{{value}}{power_megawatts.formatter['symbol']}",
+                                **font_sizes,
+                            ),
+                            pn.indicators.Number.from_param(
+                                self.param.cost,
+                                disabled=True,
+                                format=f"{{value}}{price_usd_per_mwh.formatter['symbol']}",
+                                **font_sizes,
+                            ),
+                        ),
                     ),
-                    pn.widgets.StaticText.from_param(self.param.zone),
-                    pn.widgets.StaticText.from_param(self.param.cost),
                     pn.Row(
                         pn.Column(
                             pn.Card(
