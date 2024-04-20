@@ -77,7 +77,7 @@ class Format:
         )
 
 
-admittance_siemens = Format.from_unit("S")
+admittance_siemens = Format.from_unit("S", precision=1)
 boolean_check = Format.boolean(allow_empty=False)
 tristate_check = Format.boolean(allow_empty=True)
 fraction_percentage = Format(align="right", formatter=NumberFormatter(format="0%"))
