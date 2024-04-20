@@ -63,6 +63,10 @@ class Bidder(pn.viewable.Viewer):
 
     @pn.depends("generator_name", "reset", watch=True)
     def _on_reset(self) -> None:
+        self._reset_rows()
+        self._update_summary()
+
+    def _reset_rows(self) -> None:
         # TODO: Should we roll back to previously submitted or -committed?
         rows: Series[np.bool] = self._rows()
         self.offers_drafted = self.auction.offers_pending[rows]
@@ -81,7 +85,6 @@ class Bidder(pn.viewable.Viewer):
             self.generator_name,
             Generators.capacity,
         ]
-        self._update_summary()
 
     @pn.depends("submit", watch=True)
     def _on_submit(self) -> None:
@@ -104,6 +107,7 @@ class Bidder(pn.viewable.Viewer):
 
     @pn.depends("auction.param", watch=True)
     def _on_auction_param(self) -> None:
+        self._reset_rows()
         self._update_summary()
 
     def _clear_summary(self) -> None:
@@ -260,7 +264,7 @@ class Bidder(pn.viewable.Viewer):
                                     pn.widgets.StaticText.from_param(
                                         self.auction.pricer.param.status
                                     ),
-                                    label="Clearance Status",
+                                    label="Clearance",
                                     level=MARKDOWN_LEVEL_LOWER,
                                 ),
                                 labeled(
