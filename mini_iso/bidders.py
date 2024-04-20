@@ -245,6 +245,7 @@ class Bidder(pn.viewable.Viewer):
                                         formatters={
                                             ZonesPrice.price: price_usd_per_mwh.formatter,
                                         },
+                                        frozen=True,
                                         show_index=True,
                                         text_align={
                                             ZonesPrice.price: price_usd_per_mwh.align,
