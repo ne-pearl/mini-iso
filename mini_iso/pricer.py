@@ -70,7 +70,7 @@ class LmpPricer(pn.viewable.Viewer):
     objective = pm.Number(label="Objective Value")
     payment_from_loads = pm.Number(label="From Loads")
     payment_to_generators = pm.Number(label="To Generators")
-    cost_of_congestion = pm.Number(label="Congestion")
+    cost_of_congestion = pm.Number(label="Congestion Rent")
 
     def __init__(
         self,
