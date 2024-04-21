@@ -54,7 +54,7 @@ class Format:
     formatter: dict[str, bool | int | str] | CellFormatter
 
     @classmethod
-    def from_unit(cls, unit: str, precision: int = 0) -> Format:
+    def from_unit(cls, unit: str, precision: int = 2) -> Format:
         return cls(
             align="right",
             formatter={
