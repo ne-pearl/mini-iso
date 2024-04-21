@@ -817,7 +817,7 @@ class LmpDashboard(pm.Parameterized):
                     pn.Row(
                         labeled(pn.pane.Vega(offer_stacks_chart_zonal), label="Actual"),
                         labeled(
-                            pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated"
+                            pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated Zone"
                         ),
                     ),
                 ),
