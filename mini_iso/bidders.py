@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Final
 import warnings
 import numpy as np
 from numpy.typing import NDArray

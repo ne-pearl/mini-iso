@@ -34,7 +34,6 @@ from mini_iso.typing import (
 )
 from mini_iso.miscellaneous import (
     BIND_TOL,
-    INDICATOR_FONT_SIZES,
     admittance_siemens,
     boolean_check,
     fraction_percentage,
