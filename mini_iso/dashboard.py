@@ -947,9 +947,9 @@ class LmpDashboard(pm.Parameterized):
                     pn.Column(
                         self.pricer.status_panel(),
                         pn.Tabs(
-                            ("Network / Lines", self.network_panel()),
+                            ("Network/Lines", self.network_panel()),
                             ("Offers", self.offers_panel()),
-                            ("Buses / Zones", self.zones_panel()),
+                            ("Buses/Zones", self.zones_panel()),
                             ("Generators", self.generators_panel()),
                         ),
                     ),
