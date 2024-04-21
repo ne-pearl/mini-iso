@@ -385,7 +385,7 @@ class LinesOutput(LinesSolution):
     capacity: Series[PowerMW] = _float_field()
     slack: Series[PowerMW] = _float_field()
     utilization: Series[Fraction]
-    is_critical: Series[bool]
+    is_congested: Series[bool]
     x_from: Series[SpatialCoordinate] = _float_field()
     y_from: Series[SpatialCoordinate] = _float_field()
     x_to: Series[SpatialCoordinate] = _float_field()
