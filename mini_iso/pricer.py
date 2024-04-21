@@ -1,19 +1,24 @@
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from pandera.typing import DataFrame
+from pandera.typing import DataFrame, Series
 import panel as pn
 import param as pm
 from mini_iso.clearance import Status, clear_auction
 from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
+    GeneratorId,
     Generators,
     Input,
     Lines,
     LinesFlow,
     Offers,
     OffersDispatched,
+    PaymentUSDPerH,
+    PowerMW,
+    PriceUSDPerMWh,
     Solution,
+    ZoneId,
     Zones,
     ZonesPrice,
 )
@@ -61,7 +66,11 @@ class LmpPricer(pn.viewable.Viewer):
     offers_dispatched = pm.DataFrame(label="Offer Dispatch")
     zones_price = pm.DataFrame(label="Zone Prices")
     status = pm.String(label="Status")
+
     objective = pm.Number(label="Objective Value")
+    payment_from_loads = pm.Number(label="From Loads")
+    payment_to_generators = pm.Number(label="To Generators")
+    cost_of_congestion = pm.Number(label="Congestion")
 
     def __init__(
         self,
@@ -119,24 +128,26 @@ class LmpPricer(pn.viewable.Viewer):
         status: Status
         status, solution = clear_auction(inputs)
 
+        # FIXME: Eliminate intermediate conversion?
+        offers_index = self.offers.set_index(OFFERS_INDEX_LABELS).index
+
         lines_flow: pd.Series
         offers_dispatched: pd.Series
         zones_price: pd.Series
 
         if status is not Status.OPTIMAL:
             print(f"Failure: {status.value} [{status.name}]")
-            lines_flow = pd.Series(
+            lines_flow = Series[PowerMW](
                 data=0.0,
                 index=self.lines.index,
                 name=LinesFlow.quantity,
             )
-            offers_dispatched = pd.Series(
+            offers_dispatched = Series[PowerMW](
                 data=0.0,
-                # FIXME: Eliminate intermediate conversion?
-                index=self.offers.set_index(OFFERS_INDEX_LABELS).index,
+                index=offers_index,
                 name=OffersDispatched.quantity_dispatched,
             )
-            zones_price = pd.Series(
+            zones_price = Series[PriceUSDPerMWh](
                 data=0.0,
                 index=self.zones.index,
                 name=ZonesPrice.price,
@@ -146,6 +157,28 @@ class LmpPricer(pn.viewable.Viewer):
             lines_flow = solution.lines[LinesFlow.quantity]
             offers_dispatched = solution.offers[OffersDispatched.quantity_dispatched]
             zones_price = solution.zones[ZonesPrice.price]
+
+        zones_load: Series[PowerMW] = self.zones[Zones.load]
+        generators_zone: Series[ZoneId] = self.generators[Generators.zone]
+        offers_generator = Series[GeneratorId](
+            data=self.offers[Offers.generator].values,
+            index=offers_index,
+        )
+
+        offers_zone = Series[ZoneId](
+            data=generators_zone.loc[offers_generator].values,
+            index=offers_index,
+        )
+        offers_nodal_price = Series[PriceUSDPerMWh](
+            data=zones_price[offers_zone].values,
+            index=offers_index,
+        )
+
+        payment_from_loads: PaymentUSDPerH = (zones_price * zones_load).sum()
+        payment_to_generators: PaymentUSDPerH = (
+            offers_nodal_price * offers_dispatched
+        ).sum()
+        cost_of_congestion: PaymentUSDPerH = payment_from_loads - payment_to_generators
 
         # param.parameterized.update batches events associated with the update
         self.param.update(
@@ -158,6 +191,9 @@ class LmpPricer(pn.viewable.Viewer):
             zones_price=pd.DataFrame(zones_price, index=self.zones.index),
             status=status.name,
             objective=np.nan if solution is None else solution.objective,
+            payment_from_loads=np.nan if solution is None else payment_from_loads,
+            payment_to_generators=np.nan if solution is None else payment_to_generators,
+            cost_of_congestion=np.nan if solution is None else cost_of_congestion,
         )
 
         _validate_outputs(
@@ -240,17 +276,38 @@ class LmpPricer(pn.viewable.Viewer):
             ),
         )
 
+    def status_panel(self) -> pn.viewable.Viewable:
+        return pn.Row(
+            pn.widgets.StaticText.from_param(self.param.status),
+            pn.indicators.Number.from_param(
+                self.param.objective,
+                disabled=True,
+                format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
+                **INDICATOR_FONT_SIZES,
+            ),
+            pn.indicators.Number.from_param(
+                self.param.payment_to_generators,
+                disabled=True,
+                format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
+                **INDICATOR_FONT_SIZES,
+            ),
+            pn.indicators.Number.from_param(
+                self.param.payment_from_loads,
+                disabled=True,
+                format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
+                **INDICATOR_FONT_SIZES,
+            ),
+            pn.indicators.Number.from_param(
+                self.param.cost_of_congestion,
+                disabled=True,
+                format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
+                **INDICATOR_FONT_SIZES,
+            ),
+        )
+
     def outputs_panel(self) -> pn.Column:
         return pn.Column(
-            pn.Row(
-                pn.widgets.StaticText.from_param(self.param.status),
-                pn.indicators.Number.from_param(
-                    self.param.objective,
-                    disabled=True,
-                    format=f"{{value:.0f}}{payment_usd_per_h.formatter['symbol']}",
-                    **INDICATOR_FONT_SIZES,
-                ),
-            ),
+            self.status_panel(),
             pn.Tabs(
                 tabulator_item(
                     self.param.lines_flow,
