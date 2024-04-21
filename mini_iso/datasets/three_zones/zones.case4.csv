@@ -1,4 +1,4 @@
-name,load,price,x,y
-Bus1,0,0,-1,1
-Bus2,150,0,1,1
-Bus3,0,0,0,0
+name,load,x,y
+Bus1,0,-1,1
+Bus2,150,1,1
+Bus3,0,0,0
