@@ -15,7 +15,7 @@ import param as pm
 from panel.widgets import Tabulator
 
 ADDRESS: Final[str] = "*"
-PORT: Final[int] = 5000
+PORT: Final[int] = 5008
 DATASETS_ROOT_PATH: Final[Path] = Path(__file__).parent.parent
 assert DATASETS_ROOT_PATH.exists()
 assert DATASETS_ROOT_PATH.is_dir()
