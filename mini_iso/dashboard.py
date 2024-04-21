@@ -173,6 +173,9 @@ def _augment_lines_dataframe(pricer: LmpPricer) -> DataFrame:
             LinesOutput.y_to: y_to,
             LinesOutput.x_mid: (x_from + x_to) * 0.5,
             LinesOutput.y_mid: (y_from + y_to) * 0.5,
+            LinesOutput.angle_degrees: np.rad2deg(
+                np.arctan2(y_to - y_from, x_to - x_from)
+            ),
         },
         index=pricer.lines.index,
     ).reset_index()
@@ -415,6 +418,7 @@ class LmpDashboard(pm.Parameterized):
             # Default font size is 11
             # https://altair-viz.github.io/user_guide/marks/text.html
             font_size: Final[dict] = alt.value(14)
+            opaque: Final[dict[str, float]] = dict(fillOpacity=1.0)
             dy: Final[int] = 8
             circle_radius: Final[float] = 30.0
             format_strings: Final[dict[str, str]] = collections.defaultdict(
@@ -434,7 +438,7 @@ class LmpDashboard(pm.Parameterized):
             zones_chart = alt.Chart(dataframe_zones)
 
             zones_line_plot = (
-                lines_chart.mark_rule(color="black")
+                lines_chart.mark_rule(**opaque)
                 .encode(
                     x=alt.X(
                         LinesOutput.x_from,
@@ -465,11 +469,16 @@ class LmpDashboard(pm.Parameterized):
                 # .properties(height=400)
             )
 
-            zones_line_midpoint_plot = lines_chart.mark_point().encode(
+            zones_line_midpoint_plot = lines_chart.mark_point(
+                filled=True,
+                shape="triangle",
+                **opaque,
+            ).encode(
                 x=alt.X(LinesOutput.x_mid),
                 y=alt.Y(LinesOutput.y_mid),
+                # angle=alt.Angle(LinesOutput.angle_degrees),
                 color=alt.Color(color_field_lines, legend=None),
-                size=alt.value(10),
+                size=alt.value(10),  # use e.g. 400 for triangles
             )
 
             zones_line_label_plot = zones_line_midpoint_plot.mark_text(
@@ -478,6 +487,7 @@ class LmpDashboard(pm.Parameterized):
                 dx=0,
                 dy=0,
             ).encode(
+                # angle=alt.AngleValue(0),
                 color=alt.value("black"),
                 size=font_size,
                 text=alt.Text(
@@ -488,7 +498,7 @@ class LmpDashboard(pm.Parameterized):
             )
 
             zones_plot = (
-                zones_chart.mark_square()
+                zones_chart.mark_square(**opaque)
                 .project(type="identity", reflectY=True)
                 .encode(
                     x=alt.X(ZonesOutput.x, type="quantitative"),
@@ -533,7 +543,7 @@ class LmpDashboard(pm.Parameterized):
             )
 
             generators_line_plot = (
-                generators_chart.mark_rule(color="black")
+                generators_chart.mark_rule()
                 .encode(
                     x=alt.X(
                         GeneratorsOutput.x,
@@ -584,7 +594,7 @@ class LmpDashboard(pm.Parameterized):
             # )
 
             generators_plot = (
-                generators_chart.mark_circle()
+                generators_chart.mark_circle(**opaque)
                 .project(type="identity", reflectY=True)
                 .encode(
                     x=alt.X(GeneratorsOutput.x, type="quantitative"),
@@ -638,6 +648,7 @@ class LmpDashboard(pm.Parameterized):
                     # generators_line_label_plot,
                     generators_name_plot,
                     generators_data_plot,
+                    # zones_line_midpoint_plot,
                     zones_line_label_plot,
                     zones_name_plot,
                     zones_data_plot,

@@ -13,7 +13,7 @@ from pandera.api.pandas import model_config
 from pandera.typing import DataFrame, Index, Series
 from pandera.errors import SchemaError
 
-
+AngleDegrees: TypeAlias = float
 GeneratorId: TypeAlias = str
 LineId: TypeAlias = str
 TrancheId: TypeAlias = str
@@ -392,7 +392,7 @@ class LinesOutput(LinesSolution):
     y_to: Series[SpatialCoordinate] = _float_field()
     x_mid: Series[SpatialCoordinate] = _float_field()
     y_mid: Series[SpatialCoordinate] = _float_field()
-
+    angle_degrees: Series[AngleDegrees] = _float_field()
 
 class OffersOutput(DataFrameModel):
     class Config(model_config.BaseConfig):
