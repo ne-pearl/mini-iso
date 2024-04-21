@@ -286,13 +286,13 @@ class LmpPricer(pn.viewable.Viewer):
                 **INDICATOR_FONT_SIZES,
             ),
             pn.indicators.Number.from_param(
-                self.param.payment_to_generators,
+                self.param.payment_from_loads,
                 disabled=True,
                 format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
                 **INDICATOR_FONT_SIZES,
             ),
             pn.indicators.Number.from_param(
-                self.param.payment_from_loads,
+                self.param.payment_to_generators,
                 disabled=True,
                 format=f"{{value:.2f}}{payment_usd_per_h.formatter['symbol']}",
                 **INDICATOR_FONT_SIZES,
