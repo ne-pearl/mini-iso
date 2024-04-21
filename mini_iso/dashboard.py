@@ -679,7 +679,7 @@ class LmpDashboard(pm.Parameterized):
                 LinesOutput.is_congested,
                 LinesOutput.slack,
             ],
-            name="Lines & Overview",
+            name="Lines",
         )
 
         nodes_select = pn.widgets.Select(
@@ -947,10 +947,10 @@ class LmpDashboard(pm.Parameterized):
                     pn.Column(
                         self.pricer.status_panel(),
                         pn.Tabs(
-                            ("Lines", self.network_panel()),
-                            ("Generators", self.generators_panel()),
+                            ("Network / Lines", self.network_panel()),
                             ("Offers", self.offers_panel()),
-                            ("Zones", self.zones_panel()),
+                            ("Buses / Zones", self.zones_panel()),
+                            ("Generators", self.generators_panel()),
                         ),
                     ),
                     label="Outputs",
