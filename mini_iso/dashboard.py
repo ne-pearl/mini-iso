@@ -423,7 +423,7 @@ class LmpDashboard(pm.Parameterized):
             circle_radius: Final[float] = 30.0
             format_strings: Final[dict[str, str]] = collections.defaultdict(
                 # default format: "Currency"
-                lambda: ".0f",
+                lambda: ".2f",
                 # Specific overrides
                 {
                     GeneratorsOutput.utilization: ".0%",
@@ -562,8 +562,8 @@ class LmpDashboard(pm.Parameterized):
                     tooltip=[
                         alt.Tooltip(GeneratorsOutput.name),
                         alt.Tooltip(GeneratorsOutput.zone),
-                        alt.Tooltip(GeneratorsOutput.dispatched, format=".0f"),
-                        alt.Tooltip(GeneratorsOutput.capacity, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.dispatched, format=".2f"),
+                        alt.Tooltip(GeneratorsOutput.capacity, format=".2f"),
                         alt.Tooltip(GeneratorsOutput.utilization, format=".0%"),
                     ],
                 )
@@ -603,8 +603,8 @@ class LmpDashboard(pm.Parameterized):
                     size=alt.value(np.pi * circle_radius**2),  # actually area?
                     tooltip=[
                         GeneratorsOutput.name,
-                        alt.Tooltip(GeneratorsOutput.capacity, format=".0f"),
-                        alt.Tooltip(GeneratorsOutput.dispatched, format=".0f"),
+                        alt.Tooltip(GeneratorsOutput.capacity, format=".2f"),
+                        alt.Tooltip(GeneratorsOutput.dispatched, format=".2f"),
                         alt.Tooltip(GeneratorsOutput.utilization, format=".0%"),
                     ],
                 )
@@ -680,7 +680,7 @@ class LmpDashboard(pm.Parameterized):
                 LinesOutput.is_critical,
                 LinesOutput.slack,
             ],
-            name="Lines",
+            name="Lines & Overview",
         )
 
         nodes_select = pn.widgets.Select(
@@ -746,6 +746,7 @@ class LmpDashboard(pm.Parameterized):
                         LinesOutput.y_to,
                         LinesOutput.x_mid,
                         LinesOutput.y_mid,
+                        LinesOutput.angle_degrees,
                     ],
                     show_index=False,
                     text_align={
@@ -945,15 +946,7 @@ class LmpDashboard(pm.Parameterized):
             main=[
                 labeled(
                     pn.Column(
-                        pn.Row(
-                            pn.widgets.StaticText.from_param(self.pricer.param.status),
-                            pn.indicators.Number.from_param(
-                                self.pricer.param.objective,
-                                disabled=True,
-                                format=f"{{value:.0f}}{payment_usd_per_h.formatter['symbol']}",
-                                **INDICATOR_FONT_SIZES,
-                            ),
-                        ),
+                        self.pricer.status_panel(),
                         pn.Tabs(
                             ("Lines", self.network_panel()),
                             ("Generators", self.generators_panel()),
