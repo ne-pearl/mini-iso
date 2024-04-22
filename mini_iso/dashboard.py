@@ -266,6 +266,7 @@ def _augment_offers_dataframe(pricer: LmpPricer, offers: DataFrame) -> DataFrame
 def _augment_zones_dataframe(
     pricer: LmpPricer,
     generators: DataFrame[GeneratorsOutput],
+    offers: DataFrame[OffersOutput],
 ) -> DataFrame:
     # Sum dispatched output over each zone's generators:
     zones_generation_temporary: Series[PowerMW] = generators.groupby(
@@ -293,6 +294,12 @@ def _augment_zones_dataframe(
         0.0
     )
 
+    # Explicit index and .fillna(False) account for zones with no generation
+    has_marginal = Series[bool](
+        data=offers.groupby(OffersOutput.zone)[OffersOutput.is_marginal].aggregate(any),
+        index=pricer.zones.index,
+    ).fillna(False)
+
     return DataFrame[ZonesOutput](
         {
             ZonesOutput.price: pricer.zones_price[ZonesPrice.price],
@@ -300,6 +307,7 @@ def _augment_zones_dataframe(
             ZonesOutput.dispatched: zones_dispatched,
             ZonesOutput.capacity: zones_capacity,
             ZonesOutput.utilization: zones_utilization,
+            ZonesOutput.has_marginal: has_marginal,
             ZonesOutput.x: pricer.zones[Zones.x],
             ZonesOutput.y: pricer.zones[Zones.y],
         },
@@ -330,7 +338,9 @@ class LmpDashboard(pm.Parameterized):
         generators_new = _augment_generators_dataframe(self.pricer, offers=offers_new)
         lines_new = _augment_lines_dataframe(self.pricer)
         offers_new = _augment_offers_dataframe(self.pricer, offers=offers_new)
-        zones_new = _augment_zones_dataframe(self.pricer, generators=generators_new)
+        zones_new = _augment_zones_dataframe(
+            self.pricer, generators=generators_new, offers=offers_new
+        )
 
         self.param.update(
             generators=generators_new,
@@ -686,6 +696,7 @@ class LmpDashboard(pm.Parameterized):
             options=[
                 ZonesOutput.price,
                 ZonesOutput.load,
+                ZonesOutput.has_marginal,
                 ZonesOutput.capacity,
                 ZonesOutput.dispatched,
                 ZonesOutput.utilization,
@@ -814,9 +825,13 @@ class LmpDashboard(pm.Parameterized):
                 (
                     "By Zone",
                     pn.Row(
-                        labeled(pn.pane.Vega(offer_stacks_chart_zonal), label="Connected Zones"),
                         labeled(
-                            pn.pane.Vega(offer_stacks_chart_ideal), label="Isolated Zones"
+                            pn.pane.Vega(offer_stacks_chart_zonal),
+                            label="Connected Zones",
+                        ),
+                        labeled(
+                            pn.pane.Vega(offer_stacks_chart_ideal),
+                            label="Isolated Zones",
                         ),
                     ),
                 ),

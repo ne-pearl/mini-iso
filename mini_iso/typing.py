@@ -218,7 +218,7 @@ class Input:
         # https://networkx.org/documentation/stable/reference/generated/networkx.drawing.layout.spring_layout.html
         line_weight_key: Final[str] = "weight"
         line_weight_zone: Final[int] = 1
-        line_weight_generator: Final[int] = line_weight_zone * 10
+        line_weight_generator: Final[int] = line_weight_zone * 5
 
         zones_graph: nx.Graph = nx.from_edgelist(
             zip(
@@ -394,6 +394,7 @@ class LinesOutput(LinesSolution):
     y_mid: Series[SpatialCoordinate] = _float_field()
     angle_degrees: Series[AngleDegrees] = _float_field()
 
+
 class OffersOutput(DataFrameModel):
     class Config(model_config.BaseConfig):
         multiindex_name = "offer"
@@ -425,5 +426,6 @@ class ZonesOutput(ZonesSolution):
     capacity: Series[PowerMW] = _float_field()
     dispatched: Series[PowerMW] = _float_field()
     utilization: Series[PowerMW] = _float_field()
+    has_marginal: Series[bool]
     x: Series[SpatialCoordinate] = _float_field()
     y: Series[SpatialCoordinate] = _float_field()
