@@ -33,7 +33,7 @@ OUTFLOW_NAME: typing.Final[str] = "OUTFLOW"
 FLOW_PRICE: typing.Final[str] = "flow_price"
 
 LOAD_KEY: typing.Final[str] = "Load"
-PRICE_LOCAL_KEY: typing.Final[str] = "Local Price"
+PRICE_LOCAL_KEY: typing.Final[str] = "Nodal Price (LMP)"
 
 
 class Utilization(enum.Enum):
