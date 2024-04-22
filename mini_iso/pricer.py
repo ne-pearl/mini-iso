@@ -59,7 +59,7 @@ class LmpPricer(pn.viewable.Viewer):
     generators = pm.DataFrame(label="Generators")
     lines = pm.DataFrame(label="Lines")
     offers = pm.DataFrame(label="Offers")
-    zones = pm.DataFrame(label="Buses/Zones")
+    zones = pm.DataFrame(label="Nodes/Zones")
 
     # Outputs
     lines_flow = pm.DataFrame(label="Line Flows")
