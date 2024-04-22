@@ -23,14 +23,14 @@ class Auction(pn.viewable.Viewer):
     submit = pm.Event(label="Submit")
     reset = pm.Event(label="Reset")
 
-    lines_flow = pm.DataFrame(label="Line Flows", allow_refs=True, instantiate=False)
+    lines_flow = pm.DataFrame(label="Lines", allow_refs=True, instantiate=False)
     offers_committed = pm.DataFrame(
         label="Offers Committed", allow_refs=True, instantiate=False
     )
     offers_dispatched = pm.DataFrame(
-        label="Dispatched", allow_refs=True, instantiate=False
+        label="Offers Dispatched", allow_refs=True, instantiate=False
     )
-    zones_price = pm.DataFrame(label="Prices", allow_refs=True, instantiate=False)
+    zones_price = pm.DataFrame(label="Nodes", allow_refs=True, instantiate=False)
 
     def __init__(self, pricer: LmpPricer, **params):
         super().__init__(
