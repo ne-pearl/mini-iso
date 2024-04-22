@@ -972,10 +972,11 @@ class LmpDashboard(pm.Parameterized):
                     pn.Column(
                         self.pricer.status_panel(),
                         pn.Tabs(
-                            ("Network/Lines", self.network_panel()),
-                            ("Offers", self.offers_panel()),
-                            ("Nodes/Zones", self.zones_panel()),
                             ("Generators", self.generators_panel()),
+                            ("Lines / Overview", self.network_panel()),
+                            ("Nodes", self.zones_panel()),
+                            ("Offers", self.offers_panel()),
+                            active=1,  # network plot
                         ),
                     ),
                     label="Outputs",

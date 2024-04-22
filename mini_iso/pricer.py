@@ -55,11 +55,12 @@ def _validate_outputs(
 
 
 class LmpPricer(pn.viewable.Viewer):
+
     # Inputs
     generators = pm.DataFrame(label="Generators")
     lines = pm.DataFrame(label="Lines")
     offers = pm.DataFrame(label="Offers")
-    zones = pm.DataFrame(label="Nodes/Zones")
+    zones = pm.DataFrame(label="Nodes")
 
     # Outputs
     lines_flow = pm.DataFrame(label="Line Flows")
@@ -246,6 +247,16 @@ class LmpPricer(pn.viewable.Viewer):
                 },
             ),
             tabulator_item(
+                self.param.zones,
+                disabled=False,
+                formatters={Zones.load: power_megawatts.formatter},
+                show_columns=[
+                    Zones.name,
+                    Zones.load,
+                ],
+                text_align={Zones.load: power_megawatts.align},
+            ),
+            tabulator_item(
                 self.param.offers,
                 disabled=False,
                 formatters={
@@ -264,16 +275,7 @@ class LmpPricer(pn.viewable.Viewer):
                     Offers.price: price_usd_per_mwh.align,
                 },
             ),
-            tabulator_item(
-                self.param.zones,
-                disabled=False,
-                formatters={Zones.load: power_megawatts.formatter},
-                show_columns=[
-                    Zones.name,
-                    Zones.load,
-                ],
-                text_align={Zones.load: power_megawatts.align},
-            ),
+            active=2,  # nodes tab
         )
 
     def status_panel(self) -> pn.viewable.Viewable:
