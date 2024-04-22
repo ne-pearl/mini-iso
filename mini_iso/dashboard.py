@@ -438,6 +438,7 @@ class LmpDashboard(pm.Parameterized):
                     GeneratorsOutput.utilization: ".0%",
                     LinesOutput.is_congested: ".0",
                     LinesOutput.utilization: ".0%",
+                    ZonesOutput.has_marginal: ".0",
                     ZonesOutput.utilization: ".0%",
                 },
             )
@@ -521,6 +522,7 @@ class LmpDashboard(pm.Parameterized):
                         alt.Tooltip(ZonesOutput.capacity, format=".0f"),
                         alt.Tooltip(ZonesOutput.dispatched, format=".0f"),
                         alt.Tooltip(ZonesOutput.utilization, format=".0%"),
+                        alt.Tooltip(ZonesOutput.has_marginal, format=".0")
                     ],
                 )
             )
@@ -935,6 +937,7 @@ class LmpDashboard(pm.Parameterized):
                         ZonesOutput.utilization: fraction_percentage.formatter,
                         ZonesOutput.x: real_unspecified.formatter,
                         ZonesOutput.y: real_unspecified.formatter,
+                        ZonesOutput.has_marginal: tristate_check.formatter,
                     },
                     hidden_columns=[
                         ZonesOutput.x,
@@ -949,6 +952,7 @@ class LmpDashboard(pm.Parameterized):
                         ZonesOutput.utilization: fraction_percentage.align,
                         ZonesOutput.x: real_unspecified.align,
                         ZonesOutput.y: real_unspecified.align,
+                        ZonesOutput.has_marginal: tristate_check.align,
                     },
                 ),
             ),
