@@ -974,7 +974,7 @@ class LmpDashboard(pm.Parameterized):
                         pn.Tabs(
                             ("Network/Lines", self.network_panel()),
                             ("Offers", self.offers_panel()),
-                            ("Buses/Zones", self.zones_panel()),
+                            ("Nodes/Zones", self.zones_panel()),
                             ("Generators", self.generators_panel()),
                         ),
                     ),
