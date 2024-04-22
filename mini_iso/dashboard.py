@@ -295,10 +295,16 @@ def _augment_zones_dataframe(
     )
 
     # Explicit index and .fillna(False) account for zones with no generation
-    has_marginal = Series[bool](
-        data=offers.groupby(OffersOutput.zone)[OffersOutput.is_marginal].aggregate(any),
-        index=pricer.zones.index,
-    ).fillna(False)
+    has_marginal: Series[bool] = (
+        Series(
+            data=offers.groupby(OffersOutput.zone)[OffersOutput.is_marginal]
+            .aggregate(any)
+            .map(float),  # allow for nan in missing values
+            index=pricer.zones.index,
+        )
+        .fillna(0.0)
+        .map(bool)
+    )
 
     return DataFrame[ZonesOutput](
         {
@@ -522,7 +528,7 @@ class LmpDashboard(pm.Parameterized):
                         alt.Tooltip(ZonesOutput.capacity, format=".0f"),
                         alt.Tooltip(ZonesOutput.dispatched, format=".0f"),
                         alt.Tooltip(ZonesOutput.utilization, format=".0%"),
-                        alt.Tooltip(ZonesOutput.has_marginal, format=".0")
+                        alt.Tooltip(ZonesOutput.has_marginal, format=".0"),
                     ],
                 )
             )
