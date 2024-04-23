@@ -985,6 +985,6 @@ class LmpDashboard(pm.Parameterized):
             sidebar=[
                 labeled(self.pricer.inputs_panel(), label="Inputs"),
             ],
-            sidebar_width=450,
-            title="Mini-ISO: Dashboard",
+            # sidebar_width=450,
+            title="Mini-ISO: System Overview",
         )
