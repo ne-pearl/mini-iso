@@ -2,101 +2,64 @@
 
 Simulates electricity market auctions for classroom use.
 
-## Reminders
+## Installation
+
+### Step 1. Install `git` and `pipx`
+
+#### MacOS
 
 ```bash
-pipx install poetry
+git --version  # triggers prompts to install git
+brew install pipx
+pipx ensurepath
+sudo pipx ensurepath --global
+```
 
-poetry new mini-iso
+#### Windows
+
+1. Install Python (`py`) using one of the following installers:
+   * [python-3.11.9-amd64.exe](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
+   * [python-3.12.3-amd64.exe](https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe)
+
+2. Use `py` to install `pip` and `pipx`:
+
+```bash
+py -m ensurepip --upgrade
+py -m pip install --user pipx
+```
+
+#### Linux (Ubuntu)
+
+```bash
+sudo apt update
+sudo apt install git-all
+sudo apt install pipx
+pipx ensurepath
+sudo pipx ensurepath --global
+```
+
+### Step2: Install Mini ISO
+
+```bash
+# Download Mini-ISO and install dependencies
+git clone https://github.com/ne-pearl/mini-iso.git
+
+# Move into mini-iso folder 
 cd mini-iso
-poetry env use python3.11
 
-poetry add \
-  altair gurobipy ipython pandas pandera panel \
-  hypothesis pytest
+# Install Mini ISO dependencies with Poetry
+pipx install poetry
+poetry env use 3.11  # or 3.12 etc.
+poetry install
 ```
-
-## TODO
-
-> It there any benefit in the distinction between offers and generators?
-
-* Data IO:
-  - [ ] Implement `from_mpower` using `pandapower`
-  - [ ] Implement `to_mpower` using `pandapower`
-  - [ ] Implement `test_mpower`
-
-* Generic interface to tabulated data:
-  - [ ] Remove selected column
-  - [ ] Edit selected column
-  - [ ] Add column
-
-* Data validation
-  - [ ] Offers don't exceed capacity
-  - [ ] User-dependent permissions
 
 ---
 
-## Planning
+## Running Mini ISO
 
-* Time-stamped database abstraction for each table
-  
-```python
-Model = TypeVar("Model") 
-TimeStamp: TypeAlias = int
-
-@dataclass(frozen=True, slots=True)
-class SharedDataFrame:
-
-  pickle_path: Path
-  model: Model
-
-  @classmethod
-  def initialize(cls, pickle_path: Path, dataframe: DataFrame[Model]) -> SharedDataFrame[Model]:
-    timestamp = 0
-    pickle_path = pathlib.Path(pickle_path).normalize()
-    with open(pickle_path, "wb") as file:
-      pickle.dump(obj=timestamp, protocol=pickle.HIGHEST_PROTOCOL)
-      pickle.dump(obj=dataframe, protocol=pickle.HIGHEST_PROTOCOL)
-    return cls(pickle_path=pickle_path)
-
-  @property
-  def timestamp(self) -> TimeStamp:
-    pass
-
-  def get(self) -> tuple[TimeStamp, DataFrame[Model]]:
-    pass
-
-  def set(self, dataframe: DataFrame[Model]) -> TimeStamp | None:
-    pass
-
-  def update(self, rows: DataFrame[Model]) -> TimeStamp | None:
-    pass
-
+```bash
+cd your/path/to/mini-iso
+poetry shell
+panel serve mini_iso/app.py --port 5001 \
+    --args mini_iso/datasets/one_zone/one_zone.json
 ```
-
-* Solve every `N` seconds:
-  - Load current database
-  - Recompute LMPs and dispatch instructions
-  - Post-processing
-* Admin tab:
-  - Load input `.csv` from command line arguments to update/reset database
-  - `Solve` button
-* Offer tab:
-  - `Generator` selection
-  - `Offer` table
-  - `Submit` & `Refresh` buttons
-  - `Total|Offered|Surplus Capacity` fields
-* Input tabs:
-  - Generators tab:
-  - Lines tab:
-  - Offers tab:
-  - Zones tab:
-* Output tabs:
-  - Generators tab:
-    * 
-  - Lines tab:
-  - Offers tab:
-  - Zones tab:
-
----
-
