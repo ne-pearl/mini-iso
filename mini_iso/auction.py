@@ -98,15 +98,6 @@ class Auction(pn.viewable.Viewer):
                                 },
                             ),
                             tabulator_item(
-                                self.param.lines_flow,
-                                formatters={
-                                    LinesFlow.quantity: power_megawatts.formatter,
-                                },
-                                text_align={
-                                    LinesFlow.quantity: power_megawatts.align,
-                                },
-                            ),
-                            tabulator_item(
                                 self.param.offers_dispatched,
                                 show_index=False,
                                 formatters={
@@ -114,6 +105,15 @@ class Auction(pn.viewable.Viewer):
                                 },
                                 text_align={
                                     OffersDispatched.quantity_dispatched: power_megawatts.align,
+                                },
+                            ),
+                            tabulator_item(
+                                self.param.lines_flow,
+                                formatters={
+                                    LinesFlow.quantity: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    LinesFlow.quantity: power_megawatts.align,
                                 },
                             ),
                             tabulator_item(
