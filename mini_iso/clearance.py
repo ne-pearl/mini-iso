@@ -18,7 +18,7 @@ from mini_iso.typing import (
     OffersSolution,
     PowerMW,
     Solution,
-    Susceptance,
+    SusceptanceS,
     TrancheId,
     ZoneId,
     Zones,
@@ -94,7 +94,7 @@ def clear_auction(
         )
     )  # line -> adjacent zones
 
-    B: dict[LineId, Susceptance] = dict(
+    B: dict[LineId, SusceptanceS] = dict(
         zip(lines_df[Lines.name], lines_df[Lines.susceptance])
     )
 

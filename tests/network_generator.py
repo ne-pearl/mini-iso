@@ -21,7 +21,7 @@ from mini_iso.typing import (
     PriceUSDPerMWh,
     Offers,
     PowerMW,
-    Susceptance,
+    SusceptanceS,
     ZoneId,
     Zones,
 )
@@ -50,7 +50,7 @@ GENERATORS_COST_USD_PER_MW: Final = ClosedRange[PriceUSDPerMWh](0.0, 500.0)
 
 LINES_COTREE_DENSITY: Final = ClosedRange[Fraction](0.3, 1.0)
 LINES_CAPACITY_MW: Final = ClosedRange[PowerMW](10, 1000)
-LINES_SUSCEPTANCE_S: Final = ClosedRange[Susceptance](15, 150)
+LINES_SUSCEPTANCE_S: Final = ClosedRange[SusceptanceS](15, 150)
 
 OFFERS_NUM_PER_GENERATOR: Final = ClosedRange[int](1, 4)
 
