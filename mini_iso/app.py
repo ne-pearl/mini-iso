@@ -6,8 +6,9 @@ import sys
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.dashboard import LmpPricer, LmpDashboard
-from mini_iso.miscellaneous import DATASETS_ROOT_PATH
-from mini_iso.typing import Input
+# from mini_iso.miscellaneous import DATASETS_ROOT_PATH
+from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
+from mini_iso.typing_ import Input
 
 
 # panel configuration
@@ -45,4 +46,12 @@ parser.add_argument("path", type=Path)
 args = parser.parse_args()
 auction: Auction = load_auction(args.path)
 dashboard = LmpDashboard(pricer=auction.pricer)
-pn.panel(dashboard).servable()
+# pn.panel(dashboard).servable()
+
+pn.serve(
+    admin=True,
+    panels=dashboard,
+    port=PORT,
+    title="Mini-ISO: Application Menu",
+    websocket_origin=f"{ADDRESS}:{PORT}",
+)

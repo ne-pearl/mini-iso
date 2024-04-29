@@ -87,14 +87,21 @@ poetry env use 3.12
 # Required for python shared object files
 sudo apt-get install python3.12-dev  # or python3.11-dev etc.
 
+# Local copy of gurobi.lic from PyPI 
+cp \
+    /home/jon/.cache/pypoetry/virtualenvs/mini-iso-j2KVLI8V-py3.12/lib/python3.12/site-packages/gurobipy/.libs/gurobi.lic \
+    .
+
 # Create redistributable (only for your platform)
 cd your/path/to/mini-iso
-pyinstaller mini_iso/apps.py \
-    --hiddenimport pydantic \
-    --hiddenimport pydantic.deprecated.decorator
+pyinstaller \
+    mini_iso/app.py \
+    --hiddenimport pydantic.deprecated.decorator \
+    --add-data ./gurobi.lic:gurobipy/.libs/
+
 
 # To run
-./dist/apps/apps \
+./dist/app/app \
     $(realpath mini_iso/datasets/mini_new_england/mini_new_england.json)
 ```
 
