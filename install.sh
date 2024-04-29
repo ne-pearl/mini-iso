@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 # Use --onedir or --onefile
-pyinstaller \
+pyinstaller --onefile \
     mini_iso/app.py \
     --hiddenimport pydantic.deprecated.decorator \
     --add-data ./gurobi.lic:gurobipy/.libs/
