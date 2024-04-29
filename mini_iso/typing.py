@@ -12,8 +12,10 @@ from pandera import DataFrameModel, Field
 from pandera.api.pandas import model_config
 from pandera.typing import DataFrame, Index, Series
 from pandera.errors import SchemaError
+import scipy
 
 AngleDegrees: TypeAlias = float
+AngleRadians: TypeAlias = float
 GeneratorId: TypeAlias = str
 LineId: TypeAlias = str
 TrancheId: TypeAlias = str
@@ -192,6 +194,8 @@ Id: TypeAlias = GeneratorId | ZoneId
 Node: TypeAlias = tuple[Part, Id]
 Pos: TypeAlias = tuple[SpatialCoordinate, SpatialCoordinate]
 
+DEFAULT_BASE_POWER_MW: Final = 1000
+
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Input:
@@ -199,6 +203,7 @@ class Input:
     offers: DataFrame[Offers]
     lines: DataFrame[Lines]
     zones: DataFrame[Zones]
+    base_power: float = DEFAULT_BASE_POWER_MW
 
     def __post_init__(self):
         """Validate inter-table relations."""
@@ -341,25 +346,50 @@ class GeneratorsSolution(DataFrameModel):
 class LinesSolution(DataFrameModel):
     name: Index[LineId] = Field(unique=True)
     quantity: Series[PowerMW] = _float_field()
+    quantity_dual_coef_lb: Series[PriceUSDPerMWh] = _float_field()
+    quantity_dual_coef_ub: Series[PriceUSDPerMWh] = _float_field()
+    quantity_dual_rhs_lb: Series[PowerMW] = _float_field()
+    quantity_dual_rhs_ub: Series[PowerMW] = _float_field()
+    angle_dual_coef: Series[float] = _float_field()
+    angle_dual_rhs: Series[float] = _float_field()
 
 
 class OffersSolution(DataFrameModel):
     generator: Index[GeneratorId]
     tranche: Index[TrancheId]
+    offered_price: Series[PriceUSDPerMWh] = _float_field()
     quantity_dispatched: Series[PowerMW] = _float_field()
+    quantity_dual_coef_lb: Series[PriceUSDPerMWh] = _float_field()
+    quantity_dual_coef_ub: Series[PriceUSDPerMWh] = _float_field()
+    quantity_dual_rhs_lb: Series[PowerMW] = _float_field()
+    quantity_dual_rhs_ub: Series[PowerMW] = _float_field()
 
 
 class ZonesSolution(DataFrameModel):
     name: Index[ZoneId] = Field(unique=True)
     price: Series[PriceUSDPerMWh] = _float_field()
+    angle: Series[AngleRadians] = _float_field()
+    angle_dual_coef_lb: Series[float] = _float_field()
+    angle_dual_rhs_lb: Series[float] = _float_field()
+    angle_dual_coef_ub: Series[float] = _float_field()
+    angle_dual_rhs_ub: Series[float] = _float_field()
+    # Duplicate the price field
+    balance_dual_coef: Series[float] = _float_field()
+    balance_dual_rhs: Series[float] = _float_field()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Solution:
+
     objective: PaymentUSDPerH
+    zones_lines_incidence: scipy.sparse.sparray
+    zones_offers_incidence: scipy.sparse.sparray
+    base_power: float
+
     lines: DataFrame[LinesSolution]
     offers: DataFrame[OffersSolution]
     zones: DataFrame[ZonesSolution]
+    reference_angle_dual: float
 
 
 class GeneratorsOutput(GeneratorsSolution):

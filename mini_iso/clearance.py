@@ -1,9 +1,15 @@
+from __future__ import annotations
+import dataclasses
 import enum
 import math
 import sys
+from typing import Final
 import gurobipy as grb
+import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 from pandera.typing import DataFrame, Series
+import scipy
 from mini_iso.typing import (
     OFFERS_INDEX_LABELS,
     Input,
@@ -34,11 +40,98 @@ class Status(enum.Enum):
     UNKNOWN = "uknown or unsupported"
 
 
-def clear_auction(
-    inputs: Input,
-    base_power: PowerMW = 1000,
-) -> tuple[Status, Solution | None]:
+@dataclasses.dataclass(frozen=True, slots=True)
+class VariableDuals:
+
+    lb_coef: Series[float]
+    ub_coef: Series[float]
+    lb_rhs: Series[float]
+    ub_rhs: Series[float]
+
+    @classmethod
+    def from_variables(cls, variables: grb.tupledict, prefix: str) -> VariableDuals:
+        """Initialize from variable bounds constraints."""
+
+        basis_status: NDArray[np.int8] = np.fromiter(
+            (v.VBasis for v in variables.values()), dtype=np.int8
+        )
+        reduced_costs: NDArray[np.float64] = np.fromiter(
+            (v.RC for v in variables.values()), dtype=np.float64
+        )
+
+        index = pd.Index(data=variables.keys(), tupleize_cols=True)
+
+        def series(data, suffix: str, index=index, prefix=prefix):
+            return Series(data=data, index=index, name=f"{prefix}_{suffix}")
+
+        return cls(
+            lb_coef=series(
+                np.where(basis_status == grb.GRB.NONBASIC_LOWER, reduced_costs, 0.0),
+                suffix="coef_lb",
+            ),
+            ub_coef=series(
+                np.where(basis_status == grb.GRB.NONBASIC_UPPER, reduced_costs, 0.0),
+                suffix="coef_ub",
+            ),
+            lb_rhs=series(
+                np.fromiter((v.lb for v in variables.values()), dtype=np.float64),
+                suffix="rhs_lb",
+            ),
+            ub_rhs=series(
+                np.fromiter((v.ub for v in variables.values()), dtype=np.float64),
+                suffix="rhs_ub",
+            ),
+        )
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class EqualityDuals:
+
+    coef: Series[float]
+    rhs: Series[float]
+
+    @classmethod
+    def init(cls, constraints: grb.tupledict, prefix: str) -> EqualityDuals:
+
+        index = pd.Index(data=constraints.keys(), tupleize_cols=True)
+
+        def series(data, suffix: str, index=index, prefix=prefix):
+            return Series(data=data, index=index, name=f"{prefix}_{suffix}")
+
+        return cls(
+            coef=series((c.Pi for c in constraints.values()), suffix="coef"),
+            rhs=series((c.RHS for c in constraints.values()), suffix="rhs"),
+        )
+
+
+def _duality_gap(model: grb.Model) -> float:
+    """
+    Thanks to
+    https://support.gurobi.com/hc/en-us/community/posts/6742325654929-Issue-with-dual-values-for-continuous-model
+    """
+
+    total: float = model.ObjCon
+
+    for c in model.getConstrs():
+        total += c.RHS * c.Pi
+
+    for v in model.getVars():
+        if v.VBasis == grb.GRB.NONBASIC_LOWER:
+            total += v.RC * v.lb
+        if v.VBasis == grb.GRB.NONBASIC_UPPER:
+            total += v.RC * v.ub
+
+    assert model.ModelSense is grb.GRB.MINIMIZE
+    gap: float = model.ObjVal - total
+    print(f"duality gap: {gap:.2e} ({gap / model.ObjVal * 100:.3f}%)")
+
+    return gap
+
+
+def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
     """Solves linear pricing problem for real-time market."""
+
+    base_power: float = inputs.base_power
 
     # Allow index levels and columns to be referenced uniformly
     generators_df = inputs.generators.reset_index()
@@ -106,7 +199,7 @@ def clear_auction(
     }  # max output for generator offers
 
     # FIXME: Use these updated bounds in place of extra constraints
-    # pmax.update({(g, t): 0.0 for g in GP for t in Tg[g]})  # excluded units
+    # tranche_pmax.update({(g, t): 0.0 for g in GP for t in Tg[g]})  # excluded units
 
     tranche_cost: dict[OfferId, PriceUSDPerMWh] = {
         (str(g), str(t)): price
@@ -155,7 +248,7 @@ def clear_auction(
     )
 
     # Constraints
-    power_flow_constraints: grb.tupledict = model.addConstrs(
+    zones_balance_constraints: grb.tupledict = model.addConstrs(
         (
             sum_(p[g, t] for g in Gz[z] for t in Tg[g])
             + sum_(w[le] for le in Le.get(z, []))
@@ -165,7 +258,7 @@ def clear_auction(
         ),
         name="power_flow",
     )
-    model.addConstrs(
+    lines_angle_constraints: grb.tupledict = model.addConstrs(
         (
             base_power * B[l_] * (theta[zone_pair[0]] - theta[zone_pair[1]]) == w[l_]
             for l_ in L
@@ -173,13 +266,15 @@ def clear_auction(
         ),
         name="voltage_angle",
     )
+    reference_angle_constraint: grb.Constr | None = None
     if len(Czl) != 0:
         first_pair: tuple[ZoneId, ZoneId] = list(Czl.values())[0]
         reference_zone: ZoneId = first_pair[0]
-        model.addConstr(
+        reference_angle_constraint = model.addConstr(
             theta[reference_zone] == 0.0,
             name="angle_ref",
         )
+
     # FIXME: Replace with zero bounds on excluded generators
     model.addConstrs(
         (p[g, t] == 0.0 for g in GP for t in Tg[g]),
@@ -208,12 +303,20 @@ def clear_auction(
         return status, None
 
     assert status is Status.OPTIMAL
+    assert model.ObjCon == 0.0
+    assert abs(_duality_gap(model)) < 1e-12 * model.ObjVal
 
     price = pd.Series(
-        {z: constr.getAttr("Pi") for z, constr in power_flow_constraints.items()},
+        {z: constr.Pi for z, constr in zones_balance_constraints.items()},
         name=ZonesSolution.price,
     )
     price.index.name = Zones.name
+
+    angle = pd.Series(
+        {z: theta[z].x for z in Z},
+        name=ZonesSolution.angle,
+    )
+    angle.index.name = Zones.name
 
     line_power: Series[PowerMW] = pd.Series(
         data={l_: w[l_].x for l_ in L},
@@ -231,26 +334,146 @@ def clear_auction(
             }
             for (g, t), pgt in p.items()
         ],
-    ).set_index(OFFERS_INDEX_LABELS)
+    ).set_index(OFFERS_INDEX_LABELS)[OffersSolution.quantity_dispatched]
 
     # Sanity check
     total_load: PowerMW = inputs.zones[ZonesOutput.load].sum()
-    total_generation: PowerMW = dispatched[OffersSolution.quantity_dispatched].sum()
+    total_generation: PowerMW = dispatched.sum()
     mismatch: PowerMW = total_generation - total_load
     assert abs(mismatch) / total_load < 1e-6
 
-    def align(left: DataFrame, right: DataFrame) -> DataFrame:
+    def align(left: DataFrame, right: Series) -> Series:
         merged = left[[]].merge(right, how="left", left_index=True, right_index=True)
         assert all(left.index.values == merged.index.values)
-        return merged[right.columns]
+        return merged[right.name]
 
-    lines_solution: DataFrame = align(inputs.lines, line_power.to_frame())
-    zones_solution: DataFrame = align(inputs.zones, price.to_frame())
-    offers_solution: DataFrame = align(inputs.offers, dispatched)
+    lines_quantity: Series = align(inputs.lines, line_power)
+    zones_price_solution: Series = align(inputs.zones, price)
+    zones_angle_solution: Series = align(inputs.zones, angle)
+    offers_solution: Series = align(inputs.offers, dispatched)
+    offers_offered_price = Series(
+        inputs.offers.price,
+        name=OffersSolution.offered_price,
+    )
+
+    zones_angles_dual = VariableDuals.from_variables(theta, prefix="angle_dual")
+    lines_quantity_dual = VariableDuals.from_variables(w, prefix="quantity_dual")
+    offers_quantity_dual = VariableDuals.from_variables(p, prefix="quantity_dual")
+
+    power_flow_duals = EqualityDuals.init(
+        zones_balance_constraints,
+        prefix="balance_dual",
+    )
+    angle_duals = EqualityDuals.init(
+        lines_angle_constraints,
+        prefix="angle_dual",
+    )
+
+    num_lines: Final[int] = lines_df.index.size
+    num_offers: Final[int] = offers_df.index.size
+    num_zones: Final[int] = zones_df.index.size
+
+    lines_from: Series[ZoneId] = lines_df[Lines.zone_from]
+    lines_to: Series[ZoneId] = lines_df[Lines.zone_to]
+    offers_zone: Series[ZoneId] = pd.merge(
+        left=offers_df[Offers.generator],
+        right=generators_df[[Generators.name, Generators.zone]],
+        how="left",
+        left_on=Offers.generator,
+        right_on=Generators.name,
+    )[Generators.zone]
+
+    zones_index = Series[int](
+        data=zones_df.index.values,
+        index=zones_df[Zones.name],
+    )
+
+    zones_lines_incidence = scipy.sparse.csc_array(
+        (
+            np.concatenate(
+                (
+                    np.tile(-1.0, num_lines),  # out
+                    np.tile(+1.0, num_lines),  # on
+                ),
+            ),
+            (
+                np.concatenate(
+                    (
+                        zones_index.loc[lines_from].values,  # out
+                        zones_index.loc[lines_to].values,  # on
+                    ),
+                ),
+                np.concatenate(
+                    (
+                        lines_df.index.values,  # out
+                        lines_df.index.values,  # on
+                    )
+                ),
+            ),
+        ),
+        shape=(num_zones, num_lines),
+    )
+
+    zones_offers_incidence = scipy.sparse.csc_array(
+        (
+            np.ones(offers_df.index.size),
+            (
+                zones_index.loc[offers_zone].values,
+                offers_df.index.values,
+            ),
+        ),
+        shape=(num_zones, num_offers),
+    )
 
     return status, Solution(
         objective=model.ObjVal,
-        lines=DataFrame[LinesSolution](lines_solution),
-        zones=DataFrame[ZonesSolution](zones_solution),
-        offers=DataFrame[OffersSolution](offers_solution),
+        zones_lines_incidence=zones_lines_incidence,
+        zones_offers_incidence=zones_offers_incidence,
+        base_power=base_power,
+        reference_angle_dual=reference_angle_constraint.Pi,
+        lines=DataFrame[LinesSolution](
+            pd.concat(
+                (
+                    lines_quantity,
+                    lines_quantity_dual.lb_coef,
+                    lines_quantity_dual.lb_rhs,
+                    lines_quantity_dual.ub_coef,
+                    lines_quantity_dual.ub_rhs,
+                    angle_duals.coef,
+                    angle_duals.rhs,
+                ),
+                axis="columns",
+            ),
+            index=lines_quantity.index,
+        ),
+        offers=DataFrame[OffersSolution](
+            pd.concat(
+                (
+                    offers_solution,
+                    offers_offered_price,
+                    offers_quantity_dual.lb_coef,
+                    offers_quantity_dual.lb_rhs,
+                    offers_quantity_dual.ub_coef,
+                    offers_quantity_dual.ub_rhs,
+                ),
+                axis="columns",
+            ),
+            index=offers_solution.index,
+        ),
+        zones=DataFrame[ZonesSolution](
+            pd.concat(
+                (
+                    zones_price_solution,
+                    zones_angle_solution,
+                    zones_angles_dual.lb_coef,
+                    zones_angles_dual.lb_rhs,
+                    zones_angles_dual.ub_coef,
+                    zones_angles_dual.ub_rhs,
+                    power_flow_duals.coef,
+                    power_flow_duals.rhs,
+                ),
+                axis="columns",
+            ),
+            index=zones_price_solution.index,
+        ),
     )
