@@ -8,7 +8,7 @@ from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
 from mini_iso.dashboard import LmpPricer, LmpDashboard
 from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
-from mini_iso.typing import Input
+from mini_iso.typing_ import Input
 
 # panel configuration
 pn.extension(
@@ -33,9 +33,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 @pn.cache
 def load_auction(case_path: Path) -> Auction:
     """This function's body is evaluated exactly once."""
-    inputs: Input = Input.from_json(
-        case_path if case_path.is_absolute() else DATASETS_ROOT_PATH / case_path
-    )
+    inputs: Input = Input.from_json(DATASETS_ROOT_PATH / case_path)
     pricer: LmpPricer = LmpPricer.from_inputs(inputs)
     return Auction(pricer)
 

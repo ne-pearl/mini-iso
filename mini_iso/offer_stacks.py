@@ -10,7 +10,7 @@ import pandas as pd
 from pandera import DataFrameModel, Field
 from pandera.typing import DataFrame, Series
 from mini_iso.miscellaneous import BIND_TOL
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Fraction,
     Generators,

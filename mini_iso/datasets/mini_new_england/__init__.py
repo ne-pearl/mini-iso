@@ -1,7 +1,7 @@
 import pathlib
 from typing import Literal
 import pandas as pd
-from mini_iso.typing import Input
+from mini_iso.typing_ import Input
 
 
 def clean(df: pd.DataFrame, orient: Literal["tight"] = "tight") -> pd.DataFrame:

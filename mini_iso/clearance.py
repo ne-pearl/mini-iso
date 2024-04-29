@@ -4,7 +4,7 @@ import sys
 import gurobipy as grb
 import pandas as pd
 from pandera.typing import DataFrame, Series
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Input,
     Generators,
