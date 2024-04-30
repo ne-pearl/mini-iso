@@ -6,8 +6,9 @@ import sys
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.dashboard import LmpPricer, LmpDashboard
-from mini_iso.miscellaneous import DATASETS_ROOT_PATH
-from mini_iso.typing import Input
+# from mini_iso.miscellaneous import DATASETS_ROOT_PATH
+from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
+from mini_iso.typing_ import Input
 
 
 # panel configuration
@@ -33,7 +34,9 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 @pn.cache
 def load_auction(case_path: Path) -> Auction:
     """This function's body is evaluated exactly once."""
-    inputs: Input = Input.from_json(DATASETS_ROOT_PATH / case_path)
+    inputs: Input = Input.from_json(
+        case_path if case_path.is_absolute() else DATASETS_ROOT_PATH / case_path
+    )
     pricer: LmpPricer = LmpPricer.from_inputs(inputs)
     return Auction(pricer)
 
@@ -43,4 +46,12 @@ parser.add_argument("path", type=Path)
 args = parser.parse_args()
 auction: Auction = load_auction(args.path)
 dashboard = LmpDashboard(pricer=auction.pricer)
-pn.panel(dashboard).servable()
+# pn.panel(dashboard).servable()
+
+pn.serve(
+    admin=True,
+    panels=dashboard,
+    port=PORT,
+    title="Mini-ISO: Application Menu",
+    websocket_origin=f"{ADDRESS}:{PORT}",
+)

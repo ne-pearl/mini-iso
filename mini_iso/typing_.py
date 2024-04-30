@@ -25,7 +25,7 @@ PriceUSDPerMWh: TypeAlias = float
 PowerMW: TypeAlias = float
 PaymentUSDPerH: TypeAlias = float
 SpatialCoordinate: TypeAlias = float
-Susceptance: TypeAlias = float
+SusceptanceS: TypeAlias = float
 
 Model = TypeVar("Model")
 
@@ -92,7 +92,7 @@ class Lines(DataFrameModel):
     # Inputs
     name: Index[LineId] = Field(check_name=True, coerce=True)  # coerce 3 to "3", etc.
     capacity: Series[PowerMW] = _float_field()
-    susceptance: Series[Susceptance] = _float_field()
+    susceptance: Series[SusceptanceS] = _float_field()
     zone_from: Series[ZoneId]
     zone_to: Series[ZoneId]
 
@@ -380,7 +380,7 @@ class GeneratorsOutput(GeneratorsSolution):
 class LinesOutput(LinesSolution):
     zone_from: Series[ZoneId]
     zone_to: Series[ZoneId]
-    susceptance: Series[Susceptance] = _float_field()
+    susceptance: Series[SusceptanceS] = _float_field()
     quantity_abs: Series[PowerMW] = _float_field()
     capacity: Series[PowerMW] = _float_field()
     slack: Series[PowerMW] = _float_field()

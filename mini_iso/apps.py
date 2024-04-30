@@ -8,7 +8,7 @@ from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
 from mini_iso.dashboard import LmpPricer, LmpDashboard
 from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
-from mini_iso.typing import Input
+from mini_iso.typing_ import Input
 
 # panel configuration
 pn.extension(

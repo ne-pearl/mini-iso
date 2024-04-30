@@ -4,7 +4,7 @@ import sys
 import gurobipy as grb
 import pandas as pd
 from pandera.typing import DataFrame, Series
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Input,
     Generators,
@@ -18,7 +18,7 @@ from mini_iso.typing import (
     OffersSolution,
     PowerMW,
     Solution,
-    Susceptance,
+    SusceptanceS,
     TrancheId,
     ZoneId,
     Zones,
@@ -94,7 +94,7 @@ def clear_auction(
         )
     )  # line -> adjacent zones
 
-    B: dict[LineId, Susceptance] = dict(
+    B: dict[LineId, SusceptanceS] = dict(
         zip(lines_df[Lines.name], lines_df[Lines.susceptance])
     )
 

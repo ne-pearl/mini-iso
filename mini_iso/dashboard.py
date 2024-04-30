@@ -11,7 +11,7 @@ from mini_iso.offer_stacks import Clearance
 from mini_iso.offer_stacks_ideal import OfferStack
 from mini_iso.miscellaneous import labeled
 from mini_iso.pricer import LmpPricer
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Fraction,
     GeneratorId,
@@ -985,6 +985,6 @@ class LmpDashboard(pm.Parameterized):
             sidebar=[
                 labeled(self.pricer.inputs_panel(), label="Inputs"),
             ],
-            # sidebar_width=450,
+            sidebar_width=450,
             title="Mini-ISO: System Overview",
         )

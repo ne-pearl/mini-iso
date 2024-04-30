@@ -63,3 +63,45 @@ poetry shell
 panel serve mini_iso/app.py --port 5001 \
     --args mini_iso/datasets/one_zone/one_zone.json
 ```
+
+---
+
+## Building a distribution
+
+
+To prevent later errors:
+
+```bash
+poetry add \
+    altair dask[dataframe] gurobipy hypothesis ipython matplotlib \
+    networkx pandas pandera panel pydantic pyinstaller pytest scipy
+poetry update
+```
+
+### On Linux
+
+```bash
+poetry shell
+poetry env use 3.12
+
+# Required for python shared object files
+sudo apt-get install python3.12-dev  # or python3.11-dev etc.
+
+# Local copy of gurobi.lic from PyPI 
+cp \
+    /home/jon/.cache/pypoetry/virtualenvs/mini-iso-j2KVLI8V-py3.12/lib/python3.12/site-packages/gurobipy/.libs/gurobi.lic \
+    .
+
+# Create redistributable (only for your platform)
+cd your/path/to/mini-iso
+pyinstaller \
+    mini_iso/app.py \
+    --hiddenimport pydantic.deprecated.decorator \
+    --add-data ./gurobi.lic:gurobipy/.libs/
+
+
+# To run
+./dist/app/app \
+    $(realpath mini_iso/datasets/mini_new_england/mini_new_england.json)
+```
+

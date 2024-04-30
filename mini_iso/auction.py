@@ -1,7 +1,7 @@
 from __future__ import annotations
 import panel as pn
 import param as pm
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     Offers,
     LinesFlow,
     OffersDispatched,

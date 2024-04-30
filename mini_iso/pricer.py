@@ -5,7 +5,7 @@ from pandera.typing import DataFrame, Series
 import panel as pn
 import param as pm
 from mini_iso.clearance import Status, clear_auction
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     GeneratorId,
     Generators,
