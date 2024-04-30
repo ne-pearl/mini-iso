@@ -6,7 +6,7 @@ import pandas as pd
 from pandera.typing import Series
 import panel as pn
 import param as pm
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Generators,
     Offers,

@@ -5,7 +5,7 @@ from pandera.typing import DataFrame, Series
 import panel as pn
 import param as pm
 from mini_iso.clearance import Status, clear_auction
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     GeneratorId,
     Generators,
@@ -71,7 +71,7 @@ class LmpPricer(pn.viewable.Viewer):
     objective = pm.Number(label="Objective Value")
     payment_from_loads = pm.Number(label="From Loads")
     payment_to_generators = pm.Number(label="To Generators")
-    cost_of_congestion = pm.Number(label="Congestion Rent")
+    cost_of_congestion = pm.Number(label="Congestion Charges")
 
     def __init__(
         self,

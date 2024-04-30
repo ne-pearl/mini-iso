@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 import pandas as pd
 from pandera.typing import DataFrame, Series
 import scipy
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
     Input,
     Generators,

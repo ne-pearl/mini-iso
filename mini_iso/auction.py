@@ -1,7 +1,7 @@
 from __future__ import annotations
 import panel as pn
 import param as pm
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     Offers,
     LinesFlow,
     OffersDispatched,
@@ -23,14 +23,14 @@ class Auction(pn.viewable.Viewer):
     submit = pm.Event(label="Submit")
     reset = pm.Event(label="Reset")
 
-    lines_flow = pm.DataFrame(label="Line Flows", allow_refs=True, instantiate=False)
+    lines_flow = pm.DataFrame(label="Lines", allow_refs=True, instantiate=False)
     offers_committed = pm.DataFrame(
         label="Offers Committed", allow_refs=True, instantiate=False
     )
     offers_dispatched = pm.DataFrame(
-        label="Dispatched", allow_refs=True, instantiate=False
+        label="Offers Dispatched", allow_refs=True, instantiate=False
     )
-    zones_price = pm.DataFrame(label="Prices", allow_refs=True, instantiate=False)
+    zones_price = pm.DataFrame(label="Nodes", allow_refs=True, instantiate=False)
 
     def __init__(self, pricer: LmpPricer, **params):
         super().__init__(
@@ -98,15 +98,6 @@ class Auction(pn.viewable.Viewer):
                                 },
                             ),
                             tabulator_item(
-                                self.param.lines_flow,
-                                formatters={
-                                    LinesFlow.quantity: power_megawatts.formatter,
-                                },
-                                text_align={
-                                    LinesFlow.quantity: power_megawatts.align,
-                                },
-                            ),
-                            tabulator_item(
                                 self.param.offers_dispatched,
                                 show_index=False,
                                 formatters={
@@ -114,6 +105,15 @@ class Auction(pn.viewable.Viewer):
                                 },
                                 text_align={
                                     OffersDispatched.quantity_dispatched: power_megawatts.align,
+                                },
+                            ),
+                            tabulator_item(
+                                self.param.lines_flow,
+                                formatters={
+                                    LinesFlow.quantity: power_megawatts.formatter,
+                                },
+                                text_align={
+                                    LinesFlow.quantity: power_megawatts.align,
                                 },
                             ),
                             tabulator_item(
