@@ -346,12 +346,12 @@ class GeneratorsSolution(DataFrameModel):
 class LinesSolution(DataFrameModel):
     name: Index[LineId] = Field(unique=True)
     quantity: Series[PowerMW] = _float_field()
-    quantity_dual_coef_lb: Series[PriceUSDPerMWh] = _float_field()
-    quantity_dual_coef_ub: Series[PriceUSDPerMWh] = _float_field()
-    quantity_dual_rhs_lb: Series[PowerMW] = _float_field()
-    quantity_dual_rhs_ub: Series[PowerMW] = _float_field()
-    angle_dual_coef: Series[float] = _float_field()
-    angle_dual_rhs: Series[float] = _float_field()
+    quantity_lb_coef: Series[PriceUSDPerMWh] = _float_field()
+    quantity_ub_coef: Series[PriceUSDPerMWh] = _float_field()
+    quantity_lb_rhs: Series[PowerMW] = _float_field()
+    quantity_ub_rhs: Series[PowerMW] = _float_field()
+    angle_coef: Series[float] = _float_field()
+    angle_rhs: Series[float] = _float_field()
 
 
 class OffersSolution(DataFrameModel):
@@ -359,23 +359,23 @@ class OffersSolution(DataFrameModel):
     tranche: Index[TrancheId]
     offered_price: Series[PriceUSDPerMWh] = _float_field()
     quantity_dispatched: Series[PowerMW] = _float_field()
-    quantity_dual_coef_lb: Series[PriceUSDPerMWh] = _float_field()
-    quantity_dual_coef_ub: Series[PriceUSDPerMWh] = _float_field()
-    quantity_dual_rhs_lb: Series[PowerMW] = _float_field()
-    quantity_dual_rhs_ub: Series[PowerMW] = _float_field()
+    quantity_lb_coef: Series[PriceUSDPerMWh] = _float_field()
+    quantity_ub_coef: Series[PriceUSDPerMWh] = _float_field()
+    quantity_lb_rhs: Series[PowerMW] = _float_field()
+    quantity_ub_rhs: Series[PowerMW] = _float_field()
 
 
 class ZonesSolution(DataFrameModel):
     name: Index[ZoneId] = Field(unique=True)
     price: Series[PriceUSDPerMWh] = _float_field()
     angle: Series[AngleRadians] = _float_field()
-    angle_dual_coef_lb: Series[float] = _float_field()
-    angle_dual_rhs_lb: Series[float] = _float_field()
-    angle_dual_coef_ub: Series[float] = _float_field()
-    angle_dual_rhs_ub: Series[float] = _float_field()
+    angle_lb_coef: Series[float] = _float_field()
+    angle_lb_rhs: Series[float] = _float_field()
+    angle_ub_coef: Series[float] = _float_field()
+    angle_ub_rhs: Series[float] = _float_field()
     # Duplicate the price field
-    balance_dual_coef: Series[float] = _float_field()
-    balance_dual_rhs: Series[float] = _float_field()
+    balance_coef: Series[float] = _float_field()
+    balance_rhs: Series[float] = _float_field()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -389,7 +389,8 @@ class Solution:
     lines: DataFrame[LinesSolution]
     offers: DataFrame[OffersSolution]
     zones: DataFrame[ZonesSolution]
-    reference_angle_dual: float
+    reference_angle_coef: float
+    reference_angle_rhs: float
 
 
 class GeneratorsOutput(GeneratorsSolution):

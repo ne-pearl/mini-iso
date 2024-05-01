@@ -67,19 +67,19 @@ class VariableDuals:
         return cls(
             lb_coef=series(
                 np.where(basis_status == grb.GRB.NONBASIC_LOWER, reduced_costs, 0.0),
-                suffix="coef_lb",
+                suffix="lb_coef",
             ),
             ub_coef=series(
                 np.where(basis_status == grb.GRB.NONBASIC_UPPER, reduced_costs, 0.0),
-                suffix="coef_ub",
+                suffix="ub_coef",
             ),
             lb_rhs=series(
                 np.fromiter((v.lb for v in variables.values()), dtype=np.float64),
-                suffix="rhs_lb",
+                suffix="lb_rhs",
             ),
             ub_rhs=series(
                 np.fromiter((v.ub for v in variables.values()), dtype=np.float64),
-                suffix="rhs_ub",
+                suffix="ub_rhs",
             ),
         )
 
@@ -276,6 +276,7 @@ def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
         )
 
     # FIXME: Replace with zero bounds on excluded generators
+    assert len(GP) == 0
     model.addConstrs(
         (p[g, t] == 0.0 for g in GP for t in Tg[g]),
         name="excluded_generators",
@@ -356,17 +357,17 @@ def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
         name=OffersSolution.offered_price,
     )
 
-    zones_angles_dual = VariableDuals.from_variables(theta, prefix="angle_dual")
-    lines_quantity_dual = VariableDuals.from_variables(w, prefix="quantity_dual")
-    offers_quantity_dual = VariableDuals.from_variables(p, prefix="quantity_dual")
+    zones_angles_dual = VariableDuals.from_variables(theta, prefix="angle")
+    lines_quantity_dual = VariableDuals.from_variables(w, prefix="quantity")
+    offers_quantity_dual = VariableDuals.from_variables(p, prefix="quantity")
 
     power_flow_duals = EqualityDuals.init(
         zones_balance_constraints,
-        prefix="balance_dual",
+        prefix="balance",
     )
     angle_duals = EqualityDuals.init(
         lines_angle_constraints,
-        prefix="angle_dual",
+        prefix="angle",
     )
 
     num_lines: Final[int] = lines_df.index.size
@@ -430,7 +431,8 @@ def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
         zones_lines_incidence=zones_lines_incidence,
         zones_offers_incidence=zones_offers_incidence,
         base_power=base_power,
-        reference_angle_dual=reference_angle_constraint.Pi,
+        reference_angle_coef=reference_angle_constraint.Pi,
+        reference_angle_rhs=0.0,
         lines=DataFrame[LinesSolution](
             pd.concat(
                 (

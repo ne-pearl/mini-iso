@@ -9,7 +9,7 @@ import scipy
 import scipy.sparse
 from mini_iso.clearance import Status, clear_auction
 from mini_iso.miscellaneous import DATASETS_ROOT_PATH
-from mini_iso.typing import (
+from mini_iso.typing_ import (
     AngleRadians,
     GeneratorId,
     Generators,
@@ -60,10 +60,10 @@ class Arrays:
     zones_price: Series[PriceUSDPerMWh]
 
     # Dual variables on variable bounds
-    reference_angle_dual: float
+    reference_angle_coef: float
     lines_angles_dual: Series[float]
-    lines_quantity_dual_lb: Series[PriceUSDPerMWh]
-    lines_quantity_dual_ub: Series[PriceUSDPerMWh]
+    lines_quantity_lb_coef: Series[PriceUSDPerMWh]
+    lines_quantity_ub_coef: Series[PriceUSDPerMWh]
     offers_dispatched_dual_lb: Series[PriceUSDPerMWh]
     offers_dispatched_dual_ub: Series[PriceUSDPerMWh]
 
@@ -190,10 +190,10 @@ class Arrays:
             zones_angle=Series[AngleRadians](solution.zones[ZonesSolution.angle]),
             # Dual variables
             zones_price=Series[PriceUSDPerMWh](solution.zones[ZonesSolution.price]),
-            reference_angle_dual=solution.reference_angle_dual,
+            reference_angle_coef=solution.reference_angle_coef,
             lines_angles_dual=solution.lines[LinesSolution.angle_dual],
-            lines_quantity_dual_lb=solution.lines[LinesSolution.quantity_dual_lb],
-            lines_quantity_dual_ub=solution.lines[LinesSolution.quantity_dual_ub],
-            offers_dispatched_dual_lb=solution.offers[OffersSolution.quantity_dual_lb],
-            offers_dispatched_dual_ub=solution.offers[OffersSolution.quantity_dual_ub],
+            lines_quantity_lb_coef=solution.lines[LinesSolution.quantity_lb_coef],
+            lines_quantity_ub_coef=solution.lines[LinesSolution.quantity_ub_coef],
+            offers_dispatched_dual_lb=solution.offers[OffersSolution.quantity_lb_coef],
+            offers_dispatched_dual_ub=solution.offers[OffersSolution.quantity_ub_coef],
         )
