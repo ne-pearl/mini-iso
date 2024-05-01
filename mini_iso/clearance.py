@@ -33,6 +33,19 @@ from mini_iso.typing_ import (
 )
 
 
+class BasisStatus(enum.Enum):
+    BASIC = grb.GRB.BASIC
+    NONBASIC_LOWER = grb.GRB.NONBASIC_LOWER
+    NONBASIC_UPPER = grb.GRB.NONBASIC_UPPER
+    SUPERBASIC = grb.GRB.SUPERBASIC
+
+    @classmethod
+    def from_int(cls, status: int) -> BasisStatus | None:
+        for e in cls:
+            if e.value == status:
+                return e
+
+
 class Status(enum.Enum):
     INFEASIBLE = "infeasible problem"
     OPTIMAL = "optimal solution"
@@ -47,6 +60,7 @@ class VariableDuals:
     ub_coef: Series[float]
     lb_rhs: Series[float]
     ub_rhs: Series[float]
+    basis: Series[BasisStatus]
 
     @classmethod
     def from_variables(cls, variables: grb.tupledict, prefix: str) -> VariableDuals:
@@ -80,6 +94,10 @@ class VariableDuals:
             ub_rhs=series(
                 np.fromiter((v.ub for v in variables.values()), dtype=np.float64),
                 suffix="ub_rhs",
+            ),
+            basis=series(
+                (BasisStatus.from_int(s) for s in basis_status),
+                suffix="basis",
             ),
         )
 
@@ -457,6 +475,7 @@ def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
                     offers_quantity_dual.lb_rhs,
                     offers_quantity_dual.ub_coef,
                     offers_quantity_dual.ub_rhs,
+                    offers_quantity_dual.basis,
                 ),
                 axis="columns",
             ),

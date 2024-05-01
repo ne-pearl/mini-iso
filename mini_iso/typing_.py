@@ -363,7 +363,7 @@ class OffersSolution(DataFrameModel):
     quantity_ub_coef: Series[PriceUSDPerMWh] = _float_field()
     quantity_lb_rhs: Series[PowerMW] = _float_field()
     quantity_ub_rhs: Series[PowerMW] = _float_field()
-
+    quantity_basis: Series[int]
 
 class ZonesSolution(DataFrameModel):
     name: Index[ZoneId] = Field(unique=True)

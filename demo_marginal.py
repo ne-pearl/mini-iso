@@ -5,17 +5,17 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
+from pandera.typing import Series
 import scipy
 from mini_iso.arrays import Arrays
-from mini_iso.clearance import Status, clear_auction
+from mini_iso.clearance import BasisStatus, Status, clear_auction
 from mini_iso.miscellaneous import DATASETS_ROOT_PATH
 from mini_iso.typing_ import (
     Input,
     Lines,
     LinesSolution,
     OffersSolution,
-    Solution,
-    ZoneId,
+    PriceUSDPerMWh,
     Zones,
     ZonesSolution,
 )
@@ -132,8 +132,29 @@ check_close(
         @ (inputs.lines.susceptance * solution.lines.angle_coef)
         + solution.zones.angle_lb_coef
         + solution.zones.angle_ub_coef
-        + solution.reference_angle_coef
-        * np.eye(solution.zones.index.size, 1).flatten()
+        + solution.reference_angle_coef * np.eye(solution.zones.index.size, 1).flatten()
     ),
     np.zeros(solution.zones.index.size),
 )
+
+generators_zone_price = Series[PriceUSDPerMWh](
+    data=solution.zones.price.loc[inputs.generators.zone].values,
+    index=inputs.generators.index,
+    name="lmp",
+)
+
+offer_zone_price = Series[PriceUSDPerMWh](
+    data=generators_zone_price.loc[
+        solution.offers.index.get_level_values("generator")
+    ].values,
+    index=solution.offers.index,
+    name="is_marginal",
+)
+
+is_marginal = (offer_zone_price - inputs.offers.price).abs() <= 1e-6
+temporary = pd.concat((solution.offers.quantity_basis.map(lambda e: e.name), is_marginal), axis=1)
+print(temporary)
+
+basic, = (solution.offers.quantity_basis == BasisStatus.BASIC).values.nonzero()
+
+print("basic indices:", basic)
