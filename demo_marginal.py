@@ -116,9 +116,11 @@ check_close(
     "KKT stationarity for offers quantity",
     (
         solution.offers.offered_price
-        + solution.zones_offers_incidence.T @ solution.zones.balance_coef
-        + solution.offers.quantity_lb_coef
-        + solution.offers.quantity_ub_coef
+        - (
+            solution.zones_offers_incidence.T @ solution.zones.balance_coef
+            + solution.offers.quantity_lb_coef
+            + solution.offers.quantity_ub_coef
+        )
     ),
     np.zeros(solution.offers.index.size),
 )
@@ -130,7 +132,8 @@ check_close(
         @ (inputs.lines.susceptance * solution.lines.angle_coef)
         + solution.zones.angle_lb_coef
         + solution.zones.angle_ub_coef
-        + np.eye(solution.lines.index.size, 1).flatten()
+        + solution.reference_angle_coef
+        * np.eye(solution.zones.index.size, 1).flatten()
     ),
     np.zeros(solution.zones.index.size),
 )
