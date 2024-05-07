@@ -132,5 +132,5 @@ class Auction(pn.viewable.Viewer):
             ],
             sidebar=[],
             sidebar_width=0,
-            title="Mini-ISO: Auction / ISO",
+            title="Mini-ISO: Auction",
         )
