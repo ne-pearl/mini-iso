@@ -324,5 +324,5 @@ class Bidder(pn.viewable.Viewer):
             ],
             sidebar=[],
             sidebar_width=0,
-            title="Mini-ISO: Bidding / Generator",
+            title="Mini-ISO: Offers",
         )

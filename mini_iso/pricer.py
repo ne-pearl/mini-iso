@@ -62,12 +62,13 @@ class LmpPricer(pn.viewable.Viewer):
     offers = pm.DataFrame(label="Offers")
     zones = pm.DataFrame(label="Nodes")
 
-    # Outputs
+    # Outputs: Tabular
     lines_flow = pm.DataFrame(label="Line Flows")
     offers_dispatched = pm.DataFrame(label="Offer Dispatch")
     zones_price = pm.DataFrame(label="Zone Prices")
     status = pm.String(label="Status")
 
+    # Outputs: Scalar
     objective = pm.Number(label="Objective Value")
     payment_from_loads = pm.Number(label="From Loads")
     payment_to_generators = pm.Number(label="To Generators")

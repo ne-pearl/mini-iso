@@ -329,7 +329,13 @@ class LmpDashboard(pm.Parameterized):
     offers = pm.DataFrame()
     zones = pm.DataFrame()
 
-    @pn.depends("pricer.param", on_init=True, watch=True)
+    @pn.depends(
+        "pricer.lines_flow",
+        "pricer.offers_dispatched",
+        "pricer.zones_price",
+        on_init=True,
+        watch=True,
+    )
     def _refresh(self) -> None:
         print("LmpDashboard._refresh")
         # Combined offers data
