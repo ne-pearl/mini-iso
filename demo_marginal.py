@@ -2,13 +2,12 @@
 from __future__ import annotations
 import argparse
 from pathlib import Path
+from typing import Final
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 from pandera.typing import Series
-import scipy
-from mini_iso.arrays import Arrays
-from mini_iso.clearance import BasisStatus, Status, clear_auction
+from mini_iso.clearance import BasisStatus, Solution, Status, clear_auction
 from mini_iso.miscellaneous import DATASETS_ROOT_PATH
 from mini_iso.typing_ import (
     Input,
@@ -16,14 +15,20 @@ from mini_iso.typing_ import (
     LinesSolution,
     OffersSolution,
     PriceUSDPerMWh,
-    Zones,
+    ZoneId,
     ZonesSolution,
 )
+
+TOL: Final = 1e-6
 
 pd.options.display.max_columns = None
 
 parser = argparse.ArgumentParser(description="Marginal Units Demo")
-parser.add_argument("path", type=Path)
+parser.add_argument(
+    "--path",
+    type=Path,
+    default="mini_iso/datasets/mini_new_england/mini_new_england.json",
+)
 args = parser.parse_args()
 inputs: Input = Input.from_json(DATASETS_ROOT_PATH / args.path)
 
@@ -34,9 +39,12 @@ assert status is Status.OPTIMAL
 assert solution is not None
 
 # arrays: Arrays = Arrays.init(inputs=inputs, solution=solution)
+num_lines: Final[int] = solution.lines.shape[0]
+num_offers: Final[int] = solution.offers.shape[0]
+num_zones: Final[int] = solution.zones.shape[0]
 
 
-def check_close(label: str, left: NDArray, right: NDArray, tol: float = 1e-10) -> None:
+def check_close(label: str, left: NDArray, right: NDArray, tol: float = TOL) -> None:
     scale = np.maximum(np.abs(left), np.abs(right)) + 1.0
     mismatch = np.abs(left - right)
     print(label, np.max(mismatch))
@@ -62,18 +70,22 @@ angles_residual = (
 
 check_close(
     "objective",
-    solution.objective,
     np.dot(solution.offers.offered_price, solution.offers.quantity_dispatched),
+    solution.objective,
 )
 check_close(
     "balance",
     balance_residual,
-    np.zeros(solution.zones.balance_rhs.shape),
+    np.zeros(num_zones),
 )
-check_close("angles", angles_residual, np.zeros(solution.lines.quantity.shape))
+check_close(
+    "angles",
+    angles_residual,
+    np.zeros(num_lines),
+)
 check_close(
     "reference angle",
-    solution.zones.at[reference_zone, ZonesSolution.angle],
+    solution.zones.angle.at[reference_zone],
     0.0,
 )
 
@@ -82,15 +94,19 @@ assert all(solution.lines.quantity_ub_coef <= 0.0)
 assert all(solution.offers.quantity_lb_coef >= 0.0)
 assert all(solution.offers.quantity_ub_coef <= 0.0)
 
+lambda_lines = solution.lines.angle_coef
+lambda_zones = solution.zones.balance_coef
+lambda_ref = solution.reference_angle_coef
+
 check_close(
     "strong duality",
     (
         # balance constraint
         sum(solution.zones.price * inputs.zones.load)
         # reference angle
-        + solution.reference_angle_coef * solution.reference_angle_rhs
+        + lambda_ref * solution.reference_angle_rhs
         # angle constraints
-        + sum(solution.lines.angle_coef * solution.lines.angle_rhs)
+        + sum(lambda_lines * solution.lines.angle_rhs)
         # generator capacity bounds
         + sum(solution.offers.quantity_lb_coef * solution.offers.quantity_lb_rhs)
         + sum(solution.offers.quantity_ub_coef * solution.offers.quantity_ub_rhs)
@@ -104,12 +120,12 @@ check_close(
 check_close(
     "KKT stationarity for lines quantity",
     (
-        solution.zones_lines_incidence.T @ solution.zones.balance_coef
-        + solution.lines.angle_coef * (-1)
+        solution.zones_lines_incidence.T @ lambda_zones
+        + lambda_lines * (-1)
         + solution.lines.quantity_lb_coef
         + solution.lines.quantity_ub_coef
     ),
-    np.zeros(solution.lines.index.size),
+    np.zeros(num_lines),
 )
 
 check_close(
@@ -117,24 +133,24 @@ check_close(
     (
         solution.offers.offered_price
         - (
-            solution.zones_offers_incidence.T @ solution.zones.balance_coef
+            solution.zones_offers_incidence.T @ lambda_zones
             + solution.offers.quantity_lb_coef
             + solution.offers.quantity_ub_coef
         )
     ),
-    np.zeros(solution.offers.index.size),
+    np.zeros(num_offers),
 )
 
 check_close(
     "KKT stationarity for zones angle",
     (
         (solution.base_power * -1 * solution.zones_lines_incidence)
-        @ (inputs.lines.susceptance * solution.lines.angle_coef)
+        @ (inputs.lines.susceptance * lambda_lines)
         + solution.zones.angle_lb_coef
         + solution.zones.angle_ub_coef
-        + solution.reference_angle_coef * np.eye(solution.zones.index.size, 1).flatten()
+        + lambda_ref * np.eye(num_zones, 1).flatten()
     ),
-    np.zeros(solution.zones.index.size),
+    np.zeros(num_zones),
 )
 
 generators_zone_price = Series[PriceUSDPerMWh](
@@ -148,13 +164,124 @@ offer_zone_price = Series[PriceUSDPerMWh](
         solution.offers.index.get_level_values("generator")
     ].values,
     index=solution.offers.index,
-    name="is_marginal",
+    name="offer_zone_price",
 )
 
-is_marginal = (offer_zone_price - inputs.offers.price).abs() <= 1e-6
-temporary = pd.concat((solution.offers.quantity_basis.map(lambda e: e.name), is_marginal), axis=1)
-print(temporary)
+is_marginal = (offer_zone_price - inputs.offers.price).abs() < TOL
 
-basic, = (solution.offers.quantity_basis == BasisStatus.BASIC).values.nonzero()
+print()
+print("offers.quantity:")
+print("================")
+print(
+    pd.concat(
+        (
+            is_marginal,
+            solution.offers[
+                [
+                    OffersSolution.quantity_basis,
+                    OffersSolution.quantity_lb_coef,
+                    OffersSolution.quantity_ub_coef,
+                    OffersSolution.quantity_lb_rhs,
+                    OffersSolution.quantity_ub_rhs,
+                ]
+            ],
+        ),
+        axis=1,
+    )
+)
 
-print("basic indices:", basic)
+print()
+print("lines.quantity:")
+print("===============")
+print(
+    solution.lines[
+        [
+            LinesSolution.quantity_basis,
+            LinesSolution.quantity_lb_coef,
+            LinesSolution.quantity_ub_coef,
+            LinesSolution.quantity_lb_rhs,
+            LinesSolution.quantity_ub_rhs,
+        ]
+    ]
+)
+
+print()
+print("zones.angle:")
+print("============")
+print(
+    solution.zones[
+        [
+            ZonesSolution.angle,
+            ZonesSolution.angle_basis,
+            ZonesSolution.angle_lb_coef,
+            ZonesSolution.angle_lb_rhs,
+            ZonesSolution.angle_ub_coef,
+            ZonesSolution.angle_ub_rhs,
+        ]
+    ]
+)
+
+a_balance = np.hstack(
+    (
+        solution.zones_lines_incidence.todense(),
+        solution.zones_offers_incidence.todense(),
+        np.zeros((num_zones, num_zones)),
+    )
+)
+b_balance = solution.zones.balance_rhs.values
+
+e = np.zeros((1, num_zones))
+(column_indices,) = (solution.zones.index == reference_zone).nonzero()
+assert column_indices.size == 1
+e[0, column_indices] = 1.0
+a_angles = np.vstack(
+    (
+        np.hstack(
+            (
+                -np.eye(num_lines),
+                np.zeros((num_lines, num_offers)),
+                np.diag(-1 * solution.base_power * inputs.lines.susceptance)
+                @ solution.zones_lines_incidence.T,
+            )
+        ),
+        np.hstack(
+            (
+                np.zeros((1, num_lines + num_offers)),
+                e,
+            )
+        ),
+    )
+)
+b_angles = np.zeros(num_lines + 1)
+
+c_offers = solution.offers.offered_price
+c_all = np.hstack((np.zeros(num_lines), c_offers, np.zeros(num_zones)))
+
+x_lines = solution.lines.quantity
+x_offers = solution.offers.quantity_dispatched
+x_zones = solution.zones.angle
+x_all = np.hstack((x_lines, x_offers, x_zones))
+
+is_basic_lines = solution.lines.quantity_basis == BasisStatus.BASIC
+is_basic_offers = solution.offers.quantity_basis == BasisStatus.BASIC
+is_basic_zones = solution.zones.angle_basis == BasisStatus.BASIC
+is_basic_all = np.hstack((is_basic_lines, is_basic_offers, is_basic_zones))
+
+assert np.linalg.norm(a_balance @ x_all - b_balance, ord=np.inf) < TOL
+assert np.linalg.norm(a_angles @ x_all - b_angles, ord=np.inf) < TOL
+
+num_equalities: Final[int] = a_balance.shape[0] + a_angles.shape[0]
+num_basic: Final[int] = is_basic_all.sum()
+print(f"     equalities: {num_equalities}")
+print(f"basic variables: {num_basic}")
+
+a_all = np.vstack((a_balance, a_angles))
+b_all = np.hstack((b_balance, b_angles))
+
+
+a_basic = a_all[:, is_basic_all]
+a_nonbasic = a_all[:, ~is_basic_all]
+x_nonbasic = x_all[~is_basic_all]
+x_basic = np.linalg.solve(a_basic, b_all - a_nonbasic @ x_nonbasic)
+
+assert np.linalg.norm(x_all[is_basic_all] - x_basic, ord=np.inf) < TOL

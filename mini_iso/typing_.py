@@ -350,6 +350,7 @@ class LinesSolution(DataFrameModel):
     quantity_ub_coef: Series[PriceUSDPerMWh] = _float_field()
     quantity_lb_rhs: Series[PowerMW] = _float_field()
     quantity_ub_rhs: Series[PowerMW] = _float_field()
+    quantity_basis: Series[int]
     angle_coef: Series[float] = _float_field()
     angle_rhs: Series[float] = _float_field()
 
@@ -373,6 +374,7 @@ class ZonesSolution(DataFrameModel):
     angle_lb_rhs: Series[float] = _float_field()
     angle_ub_coef: Series[float] = _float_field()
     angle_ub_rhs: Series[float] = _float_field()
+    angle_basis: Series[int]
     # Duplicate the price field
     balance_coef: Series[float] = _float_field()
     balance_rhs: Series[float] = _float_field()
