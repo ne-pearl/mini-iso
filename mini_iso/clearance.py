@@ -284,14 +284,18 @@ def clear_auction(inputs: Input) -> tuple[Status, Solution | None]:
         ),
         name="voltage_angle",
     )
-    reference_angle_constraint: grb.Constr | None = None
+
+    assert zones_df.size != 0, "At least one zone/node is required"
+    reference_zone: ZoneId = zones_df[Zones.name].values[0]
     if len(Czl) != 0:
+        # For consistency with Mohsen's convention
         first_pair: tuple[ZoneId, ZoneId] = list(Czl.values())[0]
-        reference_zone: ZoneId = first_pair[0]
-        reference_angle_constraint = model.addConstr(
-            theta[reference_zone] == 0.0,
-            name="angle_ref",
-        )
+        reference_zone = first_pair[0]
+
+    reference_angle_constraint: grb.Constr = model.addConstr(
+        theta[reference_zone] == 0.0,
+        name="angle_ref",
+    )
 
     # FIXME: Replace with zero bounds on excluded generators
     assert len(GP) == 0
