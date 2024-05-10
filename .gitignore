@@ -1,4 +1,8 @@
 .hypothesis/
 .vscode/
+
 **/demo*.py
+
+# pyinstaller artifacts
 dist/
+build/
