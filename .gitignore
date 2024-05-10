@@ -1,3 +1,4 @@
 .hypothesis/
 .vscode/
 **/demo*.py
+dist/
