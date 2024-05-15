@@ -52,7 +52,12 @@ def _validate_and_reindex(
     try:
         # FIXME: This doesn't seem right!
         model.validate(result)
-        return DataFrame[model](result)
+        result = DataFrame[model](result)
+        # Drop excess columns (so they aren't displayed in tabulator widgets)
+        columns_all: set[str] = set(result.columns)
+        columns_schema: set[str] = set(model.get_metadata()[None]["columns"].keys())
+        columns_unknown: set[str] = columns_all.difference(columns_schema)
+        return result.drop(labels=list(columns_unknown), axis="columns")
     except SchemaError as error:
         print(f"Schema errors and failure cases for {model}:")
         print(error.failure_cases)
