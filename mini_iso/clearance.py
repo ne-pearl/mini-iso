@@ -201,12 +201,8 @@ def clear_auction(
         grb.GRB.UNBOUNDED: Status.UNBOUNDED,
     }.get(model.Status, Status.UNKNOWN)
 
-    if status is Status.OPTIMAL:
-        print(f"... succeeded: optimal objective {model.ObjVal:g}")
-    else:
-        print(f"... failed with status {model.Status} ({status.value})")
+    if status is not Status.OPTIMAL:
         return status, None
-
     assert status is Status.OPTIMAL
 
     price = pd.Series(

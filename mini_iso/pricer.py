@@ -117,7 +117,6 @@ class LmpPricer(pn.viewable.Viewer):
         self.recompute()
 
     def recompute(self) -> None:
-        print("Attempting to clear market...")
 
         inputs = Input(
             generators=self.generators,
@@ -128,7 +127,13 @@ class LmpPricer(pn.viewable.Viewer):
 
         solution: Solution | None
         status: Status
+
+        print("Attempting to clear market...")
         status, solution = clear_auction(inputs)
+        if status is Status.OPTIMAL:
+            print(f"... succeeded: optimal objective {solution.objective:.2f}$/h")
+        else:
+            print(f"... failed with status {status.name} ('{status.value}')")
 
         # FIXME: Eliminate intermediate conversion?
         offers_index = self.offers.set_index(OFFERS_INDEX_LABELS).index

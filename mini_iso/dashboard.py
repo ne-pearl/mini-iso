@@ -338,7 +338,7 @@ class LmpDashboard(pm.Parameterized):
         watch=True,
     )
     def _refresh(self) -> None:
-        print("Refreshing plots")
+        print("Refreshing panels")
         # Combined offers data
         offers_new: DataFrame = pd.concat(
             (
@@ -969,7 +969,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def __panel__(self) -> pn.viewable.Viewable:
-        print("Creating graphical panel")
+        print("Creating panels")
         return pn.template.VanillaTemplate(
             main=[
                 labeled(
