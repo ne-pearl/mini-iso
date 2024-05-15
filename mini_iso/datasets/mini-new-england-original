@@ -1,0 +1,6 @@
+{
+    "generators": "mini_new_england_original/generators.csv",
+         "lines": "mini_new_england_original/lines.csv",
+        "offers": "mini_new_england_original/offers.csv",
+         "zones": "mini_new_england_original/zones.csv"
+}
