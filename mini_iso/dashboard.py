@@ -56,7 +56,8 @@ def make_bar_chart(
     caller: str | None = None,
 ) -> alt.Chart:
     if caller:
-        print(f"{caller} -> make_bar_chart")
+        # print(f"{caller} -> make_bar_chart")
+        pass
     return (
         alt.Chart(dataframe)
         .mark_bar()
@@ -337,7 +338,7 @@ class LmpDashboard(pm.Parameterized):
         watch=True,
     )
     def _refresh(self) -> None:
-        print("LmpDashboard._refresh")
+        print("Refreshing plots")
         # Combined offers data
         offers_new: DataFrame = pd.concat(
             (
@@ -362,7 +363,6 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def generators_panel(self) -> pn.viewable.Viewable:
-        print("  LmpDashboard.generators_panel...")
         field_select = pn.widgets.Select(
             options=[
                 GeneratorsOutput.dispatched,
@@ -426,7 +426,6 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def network_panel(self) -> pn.viewable.Viewable:
-        print("  LmpDashboard.network_panel")
 
         def make_network_plot(
             dataframe_generators: DataFrame,
@@ -800,7 +799,6 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def offers_panel(self) -> pn.viewable.Viewable:
-        print("  LmpDashboard.offers_panel")
 
         def _refresh(offers_in: DataFrame, zones_in: DataFrame, pricer: LmpPricer):
             offers: DataFrame[OffersOutput] = offers_in.set_index(OFFERS_INDEX_LABELS)
@@ -906,7 +904,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def zones_panel(self) -> pn.viewable.Viewable:
-        print("  LmpDashboard.zones_panel")
+
         field_select = pn.widgets.Select(
             options=[
                 ZonesOutput.price,
@@ -971,7 +969,7 @@ class LmpDashboard(pm.Parameterized):
         )
 
     def __panel__(self) -> pn.viewable.Viewable:
-        print("LmpDashboard.__panel__")
+        print("Creating graphical panel")
         return pn.template.VanillaTemplate(
             main=[
                 labeled(
@@ -991,6 +989,6 @@ class LmpDashboard(pm.Parameterized):
             sidebar=[
                 labeled(self.pricer.inputs_panel(), label="Inputs"),
             ],
-            sidebar_width=450,
+            sidebar_width=550,
             title="Mini-ISO: System Overview",
         )
