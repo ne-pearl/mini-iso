@@ -233,7 +233,9 @@ def clear_auction(
     total_load: PowerMW = inputs.zones[ZonesOutput.load].sum()
     total_generation: PowerMW = dispatched[OffersSolution.quantity_dispatched].sum()
     mismatch: PowerMW = total_generation - total_load
-    assert abs(mismatch) / total_load < 1e-6
+    assert (
+        abs(mismatch) / total_load < 1e-6
+    ), f"mismatch: {mismatch} ({100 * mismatch / total_load}%)"
 
     def align(left: DataFrame, right: DataFrame) -> DataFrame:
         merged = left[[]].merge(right, how="left", left_index=True, right_index=True)
