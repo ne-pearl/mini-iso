@@ -24,9 +24,10 @@ poetry shell
 ~/pipx/venvs/poetry/Scripts/poetry.exe shell
 
 # Create stand-alone executable (--onefile vs --onedir)
-pyinstaller --onefile mini_iso/app.py --name mini_iso --hiddenimport pydantic.deprecated.decorator --add-data ./gurobi.lic:gurobipy/ --add-data ./gurobi.lic:gurobipy/.libs/ --add-data ./mini_iso/datasets/:datasets/
+pyinstaller --onefile mini_iso/app.py --name mini_iso --hiddenimport pydantic.deprecated.decorator --add-data ./gurobi.lic:gurobipy/ --add-data ./gurobi.lic:gurobipy/.libs/ --add-data ./mini_iso/datasets/:./
 
 # Test the new executable
-dist/mini_iso datasets/three_zones/case1.json
-dist/mini_iso datasets/mini_new_england/mini_new_england.json
+dist/mini_iso three-zones-case1
+dist/mini_iso mini-new-england-uniform
+dist/mini_iso mini-new-england
 ```
