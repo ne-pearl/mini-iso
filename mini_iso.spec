@@ -5,7 +5,7 @@ a = Analysis(
     ['mini_iso/app.py'],
     pathex=[],
     binaries=[],
-    datas=[('./gurobi.lic', 'gurobipy/.libs/'), ('./mini_iso/datasets/', 'datasets/')],
+    datas=[('./gurobi.lic', 'gurobipy/'), ('./gurobi.lic', 'gurobipy/.libs/'), ('./mini_iso/datasets/', './')],
     hiddenimports=['pydantic.deprecated.decorator'],
     hookspath=[],
     hooksconfig={},

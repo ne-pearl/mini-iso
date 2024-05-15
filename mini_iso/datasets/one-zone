@@ -1,0 +1,6 @@
+{
+    "generators": "one_zone/generators.csv",
+         "lines": "one_zone/lines.csv",
+        "offers": "one_zone/offers.csv",
+         "zones": "one_zone/zones.csv"
+}

@@ -4,9 +4,9 @@
 2. Use `py` to install `pip` and `pipx`:
 
 ```bash
-# Install pip and pipx
-py -m ensurepip --upgrade
-py -m pip install --user pipx
+# Install pip and pipx (use python or py)
+python -m ensurepip --upgrade
+python -m pip install --user pipx
 
 # Download Mini-ISO and install dependencies
 git clone https://github.com/ne-pearl/mini-iso.git
