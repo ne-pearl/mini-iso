@@ -7,7 +7,7 @@ import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.bidders import Bidder
 from mini_iso.dashboard import LmpPricer, LmpDashboard
-from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
+from mini_iso.miscellaneous import PORT, DATASETS_ROOT_PATH
 from mini_iso.typing_ import Input
 
 # panel configuration
@@ -62,7 +62,7 @@ if __name__ != "__main__":
         },
         port=PORT,
         title="Mini-ISO: Application Menu",
-        websocket_origin=f"{ADDRESS}:{PORT}",
+        websocket_origin=f"*:{PORT}",
     )
 
 else:

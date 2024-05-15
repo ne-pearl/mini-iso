@@ -6,6 +6,7 @@ import sys
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.dashboard import LmpPricer, LmpDashboard
+
 # from mini_iso.miscellaneous import DATASETS_ROOT_PATH
 from mini_iso.miscellaneous import ADDRESS, PORT, DATASETS_ROOT_PATH
 from mini_iso.typing_ import Input
@@ -43,6 +44,8 @@ def load_auction(case_path: Path) -> Auction:
 
 parser = argparse.ArgumentParser(description="Mini-ISO Dashboard")
 parser.add_argument("path", type=Path)
+parser.add_argument("--address", default=ADDRESS)
+parser.add_argument("--port", default=PORT)
 args = parser.parse_args()
 auction: Auction = load_auction(args.path)
 dashboard = LmpDashboard(pricer=auction.pricer)
@@ -51,7 +54,7 @@ dashboard = LmpDashboard(pricer=auction.pricer)
 pn.serve(
     admin=True,
     panels=dashboard,
-    port=PORT,
+    port=args.port,
     title="Mini-ISO: Application Menu",
-    websocket_origin=f"{ADDRESS}:{PORT}",
+    websocket_origin=f"{args.address}:{args.port}",
 )
