@@ -3,6 +3,7 @@ import argparse
 import logging
 from pathlib import Path
 import sys
+import textwrap
 import panel as pn
 from mini_iso.auction import Auction
 from mini_iso.dashboard import LmpPricer, LmpDashboard
@@ -42,10 +43,29 @@ def load_auction(case_path: Path) -> Auction:
     return Auction(pricer)
 
 
-parser = argparse.ArgumentParser(description="Mini-ISO Dashboard")
-parser.add_argument("path", type=Path)
-parser.add_argument("--address", default=ADDRESS)
-parser.add_argument("--port", default=PORT)
+parser = argparse.ArgumentParser(
+    description="Mini-ISO Dashboard",
+    epilog=textwrap.dedent(
+        """\
+        Names of embedded (internal) datasets:
+        1. three-zones-case1
+        2. three-zones-case2
+        3. three-zones-case3
+        4. three-zones-case4
+        5. mini-new-england-uniform
+        6. mini-new-england-nonuniform
+
+        Example:
+        $ mini_iso three-zones-case1
+
+        Use Ctrl+C to exit the program.
+        """
+    ),
+    formatter_class=argparse.RawTextHelpFormatter,
+)
+parser.add_argument("path", type=Path, help="Absolute path to external dataset OR name of embedded (internal) dataset")
+parser.add_argument("--address", default=ADDRESS, help="IP address of host")
+parser.add_argument("--port", default=PORT, help="Communication port")
 args = parser.parse_args()
 auction: Auction = load_auction(args.path)
 dashboard = LmpDashboard(pricer=auction.pricer)
