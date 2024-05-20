@@ -1,4 +1,4 @@
-#!bash
+#!/bin/bash
 
 # Use --onedir or --onefile
 # NB: The two locations of gurobi.lic are for Windows and Mac/Linux
