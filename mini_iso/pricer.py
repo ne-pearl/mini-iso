@@ -233,6 +233,8 @@ class LmpPricer(pn.viewable.Viewer):
                     Generators.capacity,
                 ],
                 text_align={Generators.capacity: power_megawatts.align},
+                # Work-around for consistency
+                titles={Generators.zone: "node"},
             ),
             tabulator_item(
                 self.param.lines,
