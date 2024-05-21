@@ -53,8 +53,8 @@ parser = argparse.ArgumentParser(
          "mini-new-england-multi" - New England zones; 3 tranches per offer
 
         Examples:
-        $ mini_iso three-nodes
-        $ mini_iso mini-new-england-uni
+        $ mini-iso three-nodes
+        $ mini-iso mini-new-england-uni
 
         Use Ctrl+C to exit the program.
         """
