@@ -21,7 +21,7 @@ assert DATASETS_ROOT_PATH.exists()
 assert DATASETS_ROOT_PATH.is_dir()
 
 # Tolerance for detection of binding constraints
-BIND_TOL: Final[float] = 1.0 / 100.0
+BIND_TOL: Final[float] = 0.1 / 100.0
 
 # For panel.widgets.indicators; default font is too large
 FONT_SIZE: Final = 15
