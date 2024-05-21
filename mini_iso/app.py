@@ -48,15 +48,13 @@ parser = argparse.ArgumentParser(
     epilog=textwrap.dedent(
         """\
         Names of embedded (internal) datasets:
-        1. three-zones-case1
-        2. three-zones-case2
-        3. three-zones-case3
-        4. three-zones-case4
-        5. mini-new-england-uniform
-        6. mini-new-england-nonuniform
+                    "three-nodes" - 3 nodes; two generators
+           "mini-new-england-uni" - New England zones; 1 tranche per offer
+         "mini-new-england-multi" - New England zones; 3 tranches per offer
 
-        Example:
-        $ mini_iso three-zones-case1
+        Examples:
+        $ mini_iso three-nodes
+        $ mini_iso mini-new-england-uni
 
         Use Ctrl+C to exit the program.
         """
