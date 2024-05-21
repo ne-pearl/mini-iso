@@ -19,15 +19,17 @@ python -m pipx install poetry
 # On Linux:
 poetry install
 poetry shell
-# On Windows: 
-~/pipx/venvs/poetry/Scripts/poetry.exe install
-~/pipx/venvs/poetry/Scripts/poetry.exe shell
+# On Windows, e.g.:
+C:/Users/Jon/pipx/venvs/poetry/Scripts/poetry.exe install
+C:/Users/Jon/pipx/venvs/poetry/Scripts/poetry.exe shell
 
 # Create stand-alone executable (--onefile vs --onedir)
-pyinstaller --onefile mini_iso/app.py --name mini_iso --hiddenimport pydantic.deprecated.decorator --add-data ./gurobi.lic:gurobipy/ --add-data ./gurobi.lic:gurobipy/.libs/ --add-data ./mini_iso/datasets/:./
+# Use --onedir or --onefile
+# NB: The two locations of gurobi.lic are for Windows and Mac/Linux
+pyinstaller --onefile mini_iso/app.py --name mini-iso --hiddenimport pydantic.deprecated.decorator --hiddenimport pkg_resources.extern --add-data ./gurobi.lic:gurobipy/ --add-data ./gurobi.lic:gurobipy/.libs/ --add-data ./mini_iso/datasets/:./
 
 # Test the new executable
-dist/mini_iso three-zones-case1
-dist/mini_iso mini-new-england-uniform
-dist/mini_iso mini-new-england
+dist/mini_iso.exe three-zones-case1
+dist/mini_iso.exe mini-new-england-uniform
+dist/mini_iso.exe mini-new-england
 ```
