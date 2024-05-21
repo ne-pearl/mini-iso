@@ -57,7 +57,7 @@ if __name__ != "__main__":
         panels={
             "auction": auction,
             "back-end": auction.pricer,
-            "bids": new_bidding_session,
+            "offers": new_bidding_session,
             "app": LmpDashboard(pricer=auction.pricer),
         },
         port=PORT,
