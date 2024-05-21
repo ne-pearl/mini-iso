@@ -1,0 +1,14 @@
+generator,name,zone,capacity,cost
+Generator_2,CT1,CT,600,0
+Generator_8,CT2,CT,600,0
+Generator_45,ME1,ME,600,0
+Generator_76,ME2,ME,600,0
+Generator_1,NH1,NH,600,0
+Generator_15,NH2,NH,600,0
+Generator_52,RI1,RI,600,0
+Generator_36,RI2,RI,600,0
+Generator_4,SEMASS1,SEMASS,600,0
+Generator_18,SEMASS2,SEMASS,600,0
+Generator_5,VT1,VT,600,0
+Generator_67,WCMASS1,WCMASS,600,0
+Generator_68,WCMASS2,WCMASS,600,0
