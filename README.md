@@ -2,23 +2,14 @@
 
 ## Table of contents
 
-- [Mini-ISO](#mini-iso)
-  - [Table of contents](#table-of-contents)
+- [Table of contents](#table-of-contents)
   - [Description](#description)
     - [Datasets](#datasets)
     - [Use cases](#use-cases)
   - [How to install Mini-ISO](#how-to-install-mini-iso)
-    - [Step 1. Install `git` and `pipx`](#step-1-install-git-and-pipx)
-      - [MacOS](#macos)
-      - [Windows](#windows)
-      - [Linux (Ubuntu)](#linux-ubuntu)
-    - [Step2: Install Mini ISO](#step2-install-mini-iso)
-    - [Key modules](#key-modules)
+  - [Key modules](#key-modules)
   - [How to run Mini-ISO](#how-to-run-mini-iso)
   - [Building a distribution](#building-a-distribution)
-    - [On Linux](#on-linux)
-    - [On Windows](#on-windows)
-    - [Running the distribution](#running-the-distribution)
 
 ## Description
 
@@ -110,7 +101,7 @@ poetry env use 3.11  # or 3.12 etc.
 poetry install
 ```
 
-### Key modules
+## Key modules
 
 | Path                                                                                               | Description                                |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
