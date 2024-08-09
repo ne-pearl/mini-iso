@@ -13,6 +13,7 @@
       - [Windows](#windows)
       - [Linux (Ubuntu)](#linux-ubuntu)
     - [Step2: Install Mini ISO](#step2-install-mini-iso)
+    - [Key modules](#key-modules)
   - [How to run Mini-ISO](#how-to-run-mini-iso)
   - [Building a distribution](#building-a-distribution)
     - [On Linux](#on-linux)
@@ -108,6 +109,16 @@ pipx install poetry
 poetry env use 3.11  # or 3.12 etc.
 poetry install
 ```
+
+### Key modules
+
+| Path                                                                                               | Description                                |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [mini_iso/auction.py](https://github.com/ne-pearl/mini-iso/blob/main/mini_iso/auction.py#L56)      | Panel definition for `Auction` app         |
+| [mini_iso/bidders.py](https://github.com/ne-pearl/mini-iso/blob/main/mini_iso/bidders.py#L182)     | Panel definition for `Offers` app          |
+| [mini_iso/clearance.py](https://github.com/ne-pearl/mini-iso/blob/main/mini_iso/clearance.py#L190) | Economic dispatch model in `gurobipy`      |
+| [mini_iso/dashboard.py](https://github.com/ne-pearl/mini-iso/blob/main/mini_iso/dashboard.py#L971) | Panel definition for `System Overview` app |
+| [mini_iso/typing_.py](https://github.com/ne-pearl/mini-iso/blob/main/mini_iso/typing_.py#L16)      | Shared type definitions                    |
 
 ---
 
