@@ -48,7 +48,7 @@ Classroom scenarios:
   - Ask them to submit bids in the `Offers` app.
   - Every few minutes, clear the market via the `Auction` app and ask students to record their change in revenue.
 
-> :warning: In a realistic environment, market participants would never see each others offers, so ask class members not to peek!
+> :warning: In a realistic environment, market participants would never see each others' offers, so ask class members not to peek!
 
 ## How to install Mini-ISO
 
