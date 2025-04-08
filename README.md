@@ -118,8 +118,7 @@ poetry install
 ```bash
 cd your/path/to/mini-iso
 poetry shell
-panel serve mini_iso/app.py --port 5001 \
-    --args mini_iso/datasets/one_zone/one_zone.json
+poetry run panel serve mini_iso/app.py --port 5001 --args mini_iso/datasets/one_zone/one_zone.json
 ```
 
 ---
