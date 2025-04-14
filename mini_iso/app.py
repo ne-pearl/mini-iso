@@ -69,10 +69,13 @@ auction: Auction = load_auction(args.path)
 dashboard = LmpDashboard(pricer=auction.pricer)
 # pn.panel(dashboard).servable()
 
-pn.serve(
-    admin=True,
-    panels=dashboard,
-    port=args.port,
-    title="Mini-ISO: Application Menu",
-    websocket_origin=f"{args.address}:{args.port}",
-)
+if __name__ == "__main__":
+    pn.serve(
+        admin=True,
+        panels=dashboard,
+        port=args.port,
+        title="Mini-ISO: Application Menu",
+        websocket_origin=f"{args.address}:{args.port}",
+    )
+else:
+    pn.panel(dashboard).servable()

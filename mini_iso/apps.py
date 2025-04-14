@@ -51,7 +51,7 @@ def new_bidding_session(auction=auction, Bidder_=Bidder):
     return Bidder_(auction)
 
 
-if __name__ != "__main__":
+if __name__ == "__main__":
     pn.serve(
         admin=True,
         panels={
