@@ -2,14 +2,26 @@
 
 ## Table of contents
 
-- [Table of contents](#table-of-contents)
+- [Mini-ISO](#mini-iso)
+  - [Table of contents](#table-of-contents)
   - [Description](#description)
     - [Datasets](#datasets)
     - [Use cases](#use-cases)
   - [How to install Mini-ISO](#how-to-install-mini-iso)
+    - [Step 1. Install `git` and `pipx`](#step-1-install-git-and-pipx)
+      - [MacOS](#macos)
+      - [Windows](#windows)
+      - [Linux (Ubuntu)](#linux-ubuntu)
+    - [Step2: Install Mini ISO](#step2-install-mini-iso)
   - [Key modules](#key-modules)
   - [How to run Mini-ISO](#how-to-run-mini-iso)
+  - [To kill a process](#to-kill-a-process)
+    - [In Linux](#in-linux)
+    - [In Windows](#in-windows)
   - [Building a distribution](#building-a-distribution)
+    - [On Linux](#on-linux)
+    - [On Windows](#on-windows)
+    - [Running the distribution](#running-the-distribution)
 
 ## Description
 
@@ -117,9 +129,25 @@ poetry install
 
 ```bash
 cd your/path/to/mini-iso
-poetry shell
-panel serve mini_iso/app.py --port 5001 \
-    --args mini_iso/datasets/one_zone/one_zone.json
+poetry env activate
+poetry run panel serve mini_iso/app.py --port 5006 --args mini_iso/datasets/one-zone
+```
+
+## To kill a process
+
+If you encounter a message like `Cannot start Bokeh server, port 5006 is already in use`, try the following commands.
+
+### In Linux
+
+```bash
+lsof -i :5006  # copy process id, e.g., 12334
+kill -9 12345
+```
+
+### In Windows
+
+```powershell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 5006).OwningProcess | Stop-Process -Force
 ```
 
 ---
@@ -140,7 +168,7 @@ poetry update
 ### On Linux
 
 ```bash
-poetry shell
+poetry env activate
 poetry env use 3.12
 
 # Required for python shared object files
