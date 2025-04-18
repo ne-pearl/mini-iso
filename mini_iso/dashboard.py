@@ -9,7 +9,7 @@ import panel as pn
 import param as pm
 from mini_iso.offer_stacks import Clearance
 from mini_iso.offer_stacks_ideal import OfferStack
-from mini_iso.miscellaneous import labeled
+from mini_iso.miscellaneous import labeled, FONT_SIZE
 from mini_iso.pricer import LmpPricer
 from mini_iso.typing_ import (
     OFFERS_INDEX_LABELS,
@@ -437,7 +437,7 @@ class LmpDashboard(pm.Parameterized):
         ) -> alt.Chart:
             # Default font size is 11
             # https://altair-viz.github.io/user_guide/marks/text.html
-            font_size: Final[dict] = alt.value(14)
+            font_size: Final[dict] = alt.value(20)
             opaque: Final[dict[str, float]] = dict(fillOpacity=1.0)
             dy: Final[int] = 8
             circle_radius: Final[float] = 30.0
@@ -714,7 +714,7 @@ class LmpDashboard(pm.Parameterized):
                 ZonesOutput.dispatched,
                 ZonesOutput.utilization,
             ],
-            name="Zones",
+            name="Nodes",
         )
 
         network_chart: alt.Chart = pn.bind(
@@ -831,6 +831,9 @@ class LmpDashboard(pm.Parameterized):
             )
             offer_stack_chart: alt.LayerChart = offer_stack.plot(
                 color_field=OffersOutput.zone
+            ).configure_axis(
+                labelFontSize=FONT_SIZE,
+                titleFontSize=FONT_SIZE,
             ).interactive()
 
             return pn.Tabs(

@@ -24,7 +24,7 @@ assert DATASETS_ROOT_PATH.is_dir()
 BIND_TOL: Final[float] = 0.1 / 100.0
 
 # For panel.widgets.indicators; default font is too large
-FONT_SIZE: Final = 15
+FONT_SIZE: Final = 20
 INDICATOR_FONT_SIZES: Final[dict[str, str]] = dict(
     font_size=str(FONT_SIZE),
     title_size=str(FONT_SIZE),

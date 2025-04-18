@@ -329,7 +329,7 @@ class Input:
         generators = load_model(Generators, "generators")
         lines = load_model(Lines, "lines")
         offers = load_model(Offers, "offers")
-        zones = load_model(Zones, "zones")
+        zones = load_model(Zones, "zones") # FIXME: switch to "nodes" for consistency
 
         return cls(
             generators=generators,
