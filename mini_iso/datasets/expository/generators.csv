@@ -1,0 +1,4 @@
+name,zone,capacity,cost
+G1,N1,200,10
+G2,N2,200,12
+G3,N1,200,14
