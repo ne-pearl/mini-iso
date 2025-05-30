@@ -51,7 +51,8 @@ def new_bidding_session(auction=auction, Bidder_=Bidder):
     return Bidder_(auction)
 
 
-if __name__ == "__main__":
+# if __name__ != "__main__":
+if True:
     pn.serve(
         admin=True,
         panels={
@@ -65,6 +66,6 @@ if __name__ == "__main__":
         websocket_origin=f"*:{PORT}",
     )
 
-else:
-    dashboard = LmpDashboard(pricer=auction.pricer)
-    pn.panel(dashboard).servable()
+# else:
+#     dashboard = LmpDashboard(pricer=auction.pricer)
+#     pn.panel(dashboard).servable()
