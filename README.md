@@ -70,7 +70,10 @@ Classroom scenarios:
 
 ```bash
 git --version  # triggers prompts to install git
-brew install pipx
+# Either...
+brew install pipx  # option 1
+# Or...
+conda install pipx  # option 2
 pipx ensurepath
 sudo pipx ensurepath --global
 ```
@@ -130,7 +133,7 @@ poetry install
 ```bash
 cd your/path/to/mini-iso
 poetry env activate
-poetry run python mini_iso/apps.py .\mini_iso\datasets\mini-new-england-multi
+poetry run python mini_iso/apps.py ./mini_iso/datasets/mini-new-england-multi
 ```
 
 ## To kill a process
