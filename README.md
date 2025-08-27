@@ -130,7 +130,7 @@ poetry install
 ```bash
 cd your/path/to/mini-iso
 poetry env activate
-poetry run panel serve mini_iso/app.py --port 5006 --args mini_iso/datasets/one-zone
+poetry run python mini_iso/apps.py .\mini_iso\datasets\mini-new-england-multi
 ```
 
 ## To kill a process
