@@ -50,22 +50,31 @@ auction: Auction = load_auction(args.path)
 def new_bidding_session(auction=auction, Bidder_=Bidder):
     return Bidder_(auction)
 
+dashboard = LmpDashboard(pricer=auction.pricer)
 
-# if __name__ != "__main__":
-if True:
-    pn.serve(
-        admin=True,
-        panels={
-            "auction": auction,
-            "back-end": auction.pricer,
-            "offers": new_bidding_session,
-            "app": LmpDashboard(pricer=auction.pricer),
-        },
-        port=PORT,
-        title="Mini-ISO: Application Menu",
-        websocket_origin=f"*:{PORT}",
-    )
+panels={
+    "auction": auction,
+    "back-end": auction.pricer,
+    "offers": new_bidding_session,
+    "app": dashboard,
+}
+
+# if __name__ == "__main__":
+#     pn.serve(
+#         admin=True,
+#         panels=panels,
+#         port=PORT,
+#         title="Mini-ISO: Application Menu",
+#         websocket_origin=f"*:{PORT}",
+#     )
 
 # else:
-#     dashboard = LmpDashboard(pricer=auction.pricer)
-#     pn.panel(dashboard).servable()
+#     pn.panel(panels).servable()
+
+pn.serve(
+    admin=True,
+    panels=panels,
+    port=PORT,
+    title="Mini-ISO: Application Menu",
+    websocket_origin=f"*:{PORT}",
+)
