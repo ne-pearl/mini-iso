@@ -12,10 +12,10 @@
       - [Verification](#verification)
     - [Step 2: Clone the Mini-ISO repository](#step-2-clone-the-mini-iso-repository)
     - [Step 3: Install dependencies](#step-3-install-dependencies)
-      - [Option A: Using Poetry (recommended)](#option-a-using-poetry-recommended)
+      - [Option A: Using `poetry` (recommended)](#option-a-using-poetry-recommended)
         - [Step 3.1: Install `pipx` and `poetry`](#step-31-install-pipx-and-poetry)
-        - [Step 3.2: Use `poetry` to install all Python dependencies](#step-32-use-poetry-to-install-all-python-dependencies)
-      - [Option B: Using pip + venv](#option-b-using-pip--venv)
+        - [Step 3.2: Install Python dependencies with `poetry`](#step-32-install-python-dependencies-with-poetry)
+      - [Option B: Using `pip + venv`](#option-b-using-pip--venv)
   - [Key modules](#key-modules)
   - [How to run Mini-ISO](#how-to-run-mini-iso)
   - [To kill a process](#to-kill-a-process)
@@ -111,7 +111,7 @@ cd mini-iso
 
 ### Step 3: Install dependencies
 
-#### Option A: Using Poetry (recommended)
+#### Option A: Using `poetry` (recommended)
 
 ##### Step 3.1: Install `pipx` and `poetry`
 
@@ -144,14 +144,14 @@ pipx ensurepath
 pipx install poetry
 ```
 
-##### Step 3.2: Use `poetry` to install all Python dependencies
+##### Step 3.2: Install Python dependencies with `poetry`
 
 ```bash
 poetry env use 3.12
 poetry install
 ```
 
-#### Option B: Using pip + venv
+#### Option B: Using `pip + venv`
 
 **On macOS / Linux:**
 
