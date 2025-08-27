@@ -130,7 +130,7 @@ poetry install
 ```bash
 cd your/path/to/mini-iso
 poetry env activate
-poetry run python mini_iso/apps.py .\mini_iso\datasets\mini-new-england-multi
+poetry run python mini_iso/apps.py ./mini_iso/datasets/mini-new-england-multi
 ```
 
 ## To kill a process
