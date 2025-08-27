@@ -8,19 +8,18 @@
     - [Datasets](#datasets)
     - [Use cases](#use-cases)
   - [How to install Mini-ISO](#how-to-install-mini-iso)
-    - [Step 1. Install `git` and `pipx`](#step-1-install-git-and-pipx)
-      - [MacOS](#macos)
-      - [Windows](#windows)
-      - [Linux (Ubuntu)](#linux-ubuntu)
-    - [Step2: Install Mini ISO](#step2-install-mini-iso)
+    - [Step 1: Install Git and Python](#step-1-install-git-and-python)
+      - [Verification](#verification)
+    - [Step 2: Clone the Mini-ISO repository](#step-2-clone-the-mini-iso-repository)
+    - [Step 3: Install dependencies](#step-3-install-dependencies)
+      - [Option A: Using Poetry (recommended)](#option-a-using-poetry-recommended)
+        - [Step 3.1: Install `pipx` and `poetry`](#step-31-install-pipx-and-poetry)
+        - [Step 3.2: Use `poetry` to install all Python dependencies](#step-32-use-poetry-to-install-all-python-dependencies)
+      - [Option B: Using pip + venv](#option-b-using-pip--venv)
   - [Key modules](#key-modules)
   - [How to run Mini-ISO](#how-to-run-mini-iso)
   - [To kill a process](#to-kill-a-process)
-    - [In Linux](#in-linux)
-    - [In Windows](#in-windows)
   - [Building a distribution](#building-a-distribution)
-    - [On Linux](#on-linux)
-    - [On Windows](#on-windows)
     - [Running the distribution](#running-the-distribution)
 
 ## Description
@@ -64,56 +63,110 @@ Classroom scenarios:
 
 ## How to install Mini-ISO
 
-### Step 1. Install `git` and `pipx`
+### Step 1: Install Git and Python
 
-#### MacOS
+**On macOS:**
 
 ```bash
-git --version  # triggers prompts to install git
-# Either...
-brew install pipx  # option 1
-# Or...
-conda install pipx  # option 2
-pipx ensurepath
-sudo pipx ensurepath --global
+# Option 1 (recommended): Homebrew
+brew install git python@3.12
+
+# Option 2: Official installers
+# - Git: https://git-scm.com/download/mac
+# - Python: https://www.python.org/downloads/macos/
 ```
 
-#### Windows
+**On Windows:**
 
-1. Install Python (`py`) using one of the following installers:
-   * [python-3.11.9-amd64.exe](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
-   * [python-3.12.3-amd64.exe](https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe)
+```bash
+winget install -e --id Git.Git
+winget install -e --id Python.Python.3.12
+```
 
-2. Use `py` to install `pip` and `pipx`:
+**On Linux (Ubuntu/Debian):**
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip
+```
+
+#### Verification
+
+Verify that both Git and Python are available on your `PATH`:
+
+```bash
+git --version
+python3 --version
+```
+
+---
+### Step 2: Clone the Mini-ISO repository
+
+```bash
+git clone https://github.com/ne-pearl/mini-iso.git
+cd mini-iso
+```
+
+---
+
+### Step 3: Install dependencies
+
+#### Option A: Using Poetry (recommended)
+
+##### Step 3.1: Install `pipx` and `poetry`
+
+**On macOS:**
+
+```bash
+# Option 1: Homebrew
+brew install pipx
+# Option 2: Conda
+conda install -c conda-forge pipx
+
+pipx ensurepath
+pipx install poetry
+```
+
+**On Windows:**
 
 ```bash
 py -m ensurepip --upgrade
 py -m pip install --user pipx
-```
-
-#### Linux (Ubuntu)
-
-```bash
-sudo apt update
-sudo apt install git-all
-sudo apt install pipx
 pipx ensurepath
-sudo pipx ensurepath --global
+pipx install poetry
 ```
 
-### Step2: Install Mini ISO
+**On Linux (Ubuntu/Debian):**
 
 ```bash
-# Download Mini-ISO and install dependencies
-git clone https://github.com/ne-pearl/mini-iso.git
-
-# Move into mini-iso folder 
-cd mini-iso
-
-# Install Mini ISO dependencies with Poetry
+python3 -m pip install --user pipx
+pipx ensurepath
 pipx install poetry
-poetry env use 3.11  # or 3.12 etc.
+```
+
+##### Step 3.2: Use `poetry` to install all Python dependencies
+
+```bash
+poetry env use 3.12
 poetry install
+```
+
+#### Option B: Using pip + venv
+
+**On macOS / Linux:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**On Windows:**
+
+```bash
+py -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 ## Key modules
@@ -140,17 +193,34 @@ poetry run python mini_iso/apps.py ./mini_iso/datasets/mini-new-england-multi
 
 If you encounter a message like `Cannot start Bokeh server, port 5006 is already in use`, try the following commands.
 
-### In Linux
+**In MacOS & Linux:**
 
 ```bash
-lsof -i :5006  # copy process id, e.g., 12334
+# Copy process id, e.g., 12345
+lsof -i :5006  
+
+# Kill process
 kill -9 12345
 ```
 
-### In Windows
+**In Windows:**
+
+In `cmd`:
+
+```bash
+# Copy process id, e.g., 12345
+netstat -ano | findstr :5006  
+
+# Kill process
+taskkill /PID 12345 /F
+```
 
 ```powershell
+# Copy process id, e.g., 12345
 Get-Process -Id (Get-NetTCPConnection -LocalPort 5006).OwningProcess | Stop-Process -Force
+
+# Kill process
+taskkill /PID 12345 /F
 ```
 
 ---
@@ -168,7 +238,7 @@ poetry add \
 poetry update
 ```
 
-### On Linux
+**On Linux:**
 
 ```bash
 poetry env activate
@@ -192,7 +262,7 @@ pyinstaller \
     $(realpath mini_iso/datasets/mini_new_england/mini_new_england.json)
 ```
 
-### On Windows
+**On Windows:**
 
 > For now, please see my notes in `windows.md`.
 
