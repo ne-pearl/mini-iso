@@ -1,5 +1,6 @@
 .hypothesis/
 .vscode/
+.venv/
 
 **/demo*.py
 
